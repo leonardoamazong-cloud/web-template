@@ -22,6 +22,13 @@ const BOUNDS_FIXED_PRECISION = 8;
 
 const { LatLng: SDKLatLng, LatLngBounds: SDKLatLngBounds } = sdkTypes;
 
+// Initial map view when the search has no area yet: the contiguous United States
+// ([west, south], [east, north] in lng/lat).
+const DEFAULT_MAP_BOUNDS = [
+  [-125.0, 24.4],
+  [-66.9, 49.4],
+];
+
 /**
  * Fit part of map (descriped with bounds) to visible map-viewport
  *
@@ -358,6 +365,8 @@ class SearchMapWithMapbox extends Component {
         container: this.state.mapContainer,
         style: 'mapbox://styles/mapbox/streets-v10',
         scrollZoom: false,
+        // Start zoomed to the USA unless the URL already has a search area
+        ...(this.props.bounds ? {} : { bounds: DEFAULT_MAP_BOUNDS }),
       });
       window.mapboxMap = this.map;
 
