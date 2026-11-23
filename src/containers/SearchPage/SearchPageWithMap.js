@@ -25,6 +25,7 @@ import {
   onSortBy,
 } from './SearchPage.shared';
 
+import CategoryTabs from './CategoryTabs/CategoryTabs';
 import FilterComponent from './FilterComponent';
 import SearchMap from './SearchMap/SearchMap';
 import MainPanelHeader from './MainPanelHeader/MainPanelHeader';
@@ -69,6 +70,37 @@ export class SearchPageComponent extends Component {
 
     // SortBy
     this.handleSortBy = this.handleSortBy.bind(this);
+
+    // Category tabs
+    this.handleSelectCategory = this.handleSelectCategory.bind(this);
+  }
+
+  /**
+   * Filter results and map markers by a top-level category (pub_categoryLevel1).
+   * Passing null shows all categories. Subcategory params and pagination are reset.
+   * @param {string|null} categoryId
+   */
+  handleSelectCategory(categoryId) {
+    const { history, routeConfiguration, location } = this.props;
+    const urlQueryParams = validUrlQueryParamsFromProps(this.props);
+    const {
+      pub_categoryLevel1,
+      pub_categoryLevel2,
+      pub_categoryLevel3,
+      ...restParams
+    } = urlQueryParams;
+    const queryParams = categoryId
+      ? { ...restParams, pub_categoryLevel1: categoryId }
+      : restParams;
+
+    const { routeName, pathParams } = getSearchPageResourceLocatorStringParams(
+      routeConfiguration,
+      location
+    );
+    this.setState({ currentQueryParams: {} });
+    history.push(
+      createResourceLocatorString(routeName, routeConfiguration, pathParams, queryParams)
+    );
   }
 
   // Callback to determine if new search is needed
@@ -306,6 +338,16 @@ export class SearchPageComponent extends Component {
 
     const { bounds, origin } = searchParamsInURL || {};
 
+    const activeCategoryId = validQueryParams?.pub_categoryLevel1 || null;
+    const categoryTabs = className => (
+      <CategoryTabs
+        className={className}
+        categories={listingCategories}
+        activeCategoryId={activeCategoryId}
+        onSelect={this.handleSelectCategory}
+      />
+    );
+
     // Set topbar class based on if a modal is open in
     // a child component
     const topbarClasses = this.state.isMobileModalOpen
@@ -324,6 +366,7 @@ export class SearchPageComponent extends Component {
         <TopbarContainer rootClassName={topbarClasses} currentSearchParams={validQueryParams} />
         <div id="main-content" className={css.container} role="main">
           <div className={css.searchResultContainer}>
+            {categoryTabs(css.categoryTabsMobile)}
             <SearchFiltersMobile
               className={css.searchFiltersMobileMap}
               urlQueryParams={validQueryParams}
@@ -466,6 +509,7 @@ export class SearchPageComponent extends Component {
             onManageDisableScrolling={onManageDisableScrolling}
           >
             <div className={css.mapWrapper} data-testid="searchMapContainer">
+              {categoryTabs(css.categoryTabsOnMap)}
               {shouldShowSearchMap ? (
                 <SearchMap
                   reusableContainerClassName={css.map}

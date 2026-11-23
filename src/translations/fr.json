@@ -60,6 +60,8 @@
   "BookingTimeForm.seatsPlaceholder": "Sélectionner…",
   "BookingTimeForm.seatsTitle": "Nombre de places",
   "BookingTimeForm.timeSlotsError": "Nous avons rencontré une erreur lors du chargement des dates disponibles. Veuillez actualiser la page.",
+  "CategoryTabs.all": "Toutes",
+  "CategoryTabs.ariaLabel": "Catégories",
   "CheckoutPage.bookingTimeNotAvailableMessage": "Malheureusement, l'horaire demandé vient d'être réservé.",
   "CheckoutPage.chargeDisabledMessage": "Cette transaction ne peut pas progresser car les informations de versement du vendeur sont incomplètes. Veuillez contacter l'assistance.",
   "CheckoutPage.correctQuantityInformationMissing": "Les données de la commande ne contiennent pas d'informations de quantité correctes",

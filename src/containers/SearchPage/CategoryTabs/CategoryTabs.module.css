@@ -1,0 +1,73 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tabList {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+
+  @media (--viewportMedium) {
+    gap: 8px;
+    padding: 8px 0;
+  }
+}
+
+.tabItem {
+  flex-shrink: 0;
+}
+
+.tab {
+  composes: h5 from global;
+  font-weight: var(--fontWeightMedium);
+  color: var(--colorGrey700);
+  white-space: nowrap;
+
+  height: 36px;
+  margin: 0;
+  padding: 0 18px;
+
+  background-color: var(--colorWhite);
+  border: 1px solid var(--colorGrey100);
+  border-radius: 18px;
+  box-shadow: var(--boxShadowButton);
+  cursor: pointer;
+  /* Clickable even when the tab bar floats over the map with pointer-events: none */
+  pointer-events: auto;
+  transition: var(--transitionStyleButton);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--colorGrey300);
+    color: var(--colorGrey900);
+  }
+
+  @media (--viewportMedium) {
+    height: 40px;
+    padding: 0 20px;
+  }
+}
+
+.tabActive {
+  color: var(--colorWhite);
+  background-color: var(--marketplaceColor);
+  border-color: var(--marketplaceColor);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--colorWhite);
+    border-color: var(--marketplaceColorDark);
+    background-color: var(--marketplaceColorDark);
+  }
+}

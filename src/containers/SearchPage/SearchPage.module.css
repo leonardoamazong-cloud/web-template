@@ -188,7 +188,7 @@
   }
 
   @media (--viewportLarge) {
-    flex-basis: 62.5%;
+    flex-basis: 45%;
   }
 }
 
@@ -289,7 +289,7 @@
   }
 
   @media (--viewportLarge) {
-    flex-basis: 37.5%;
+    flex-basis: 55%;
   }
 }
 
@@ -315,10 +315,41 @@
   }
 
   @media (--viewportLarge) {
-    width: 37.5vw;
+    width: 55vw;
   }
 }
 
 .mapRoot {
   background-color: var(--colorGrey100);
+}
+
+/* Category tabs above the result list (mobile only) */
+.categoryTabsMobile {
+  padding: 6px 24px 0 24px;
+
+  @media (--viewportMedium) {
+    display: none;
+  }
+}
+
+/* Category tabs floating at the top of the map (tablet & desktop) */
+.categoryTabsOnMap {
+  display: none;
+
+  @media (--viewportMedium) {
+    display: block;
+    position: fixed;
+    top: calc(var(--topbarHeightDesktop) + 8px);
+    right: 0;
+    width: 50vw;
+    padding: 0 16px;
+    z-index: calc(var(--zIndexTopbar) - 1);
+
+    /* Let map drag events pass through the empty parts of the bar */
+    pointer-events: none;
+  }
+
+  @media (--viewportLarge) {
+    width: 55vw;
+  }
 }
