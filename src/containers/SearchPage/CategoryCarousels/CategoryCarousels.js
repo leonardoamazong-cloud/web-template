@@ -30,25 +30,15 @@ const fetchShowcase = () => (dispatch, getState, sdk) =>
     .then(response => denormalizeAssetData(response.data))
     .catch(() => null);
 
-// Rows without uploaded images show temporary demo photos (from LoremFlickr, by keyword)
-// so the layout can be reviewed. Uploading images in Console replaces them automatically.
-// Keys are the section "anchor link IDs" set on the Console showcase page.
+// Rows without uploaded images show temporary demo photos (from picsum.photos, a fixed
+// photo per row and position) so the layout can be reviewed. Uploading images in Console
+// replaces them automatically.
 const DEMO_IMAGE_COUNT = 10;
-const DEMO_KEYWORDS = {
-  'printing-3d': '3dprinter',
-  'tshirt-textile': 'tshirt,printing',
-  laser: 'laser,engraving',
-  signs: 'signage',
-  handmade: 'handmade,craft',
-  stationery: 'packaging,box',
-};
-const demoItems = rowId => {
-  const keyword = DEMO_KEYWORDS[rowId] || 'craft';
-  return [...Array(DEMO_IMAGE_COUNT).keys()].map(i => ({
+const demoItems = rowId =>
+  [...Array(DEMO_IMAGE_COUNT).keys()].map(i => ({
     id: `demo-${rowId}-${i}`,
-    src: `https://loremflickr.com/800/600/${keyword}?lock=${i + 1}`,
+    src: `https://picsum.photos/seed/${encodeURIComponent(rowId)}-${i + 1}/800/600`,
   }));
-};
 
 /**
  * Turn the Console page sections into carousel rows. Rows without images show placeholders.
