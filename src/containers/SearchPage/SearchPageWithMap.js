@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import { isOriginInUse } from '../../util/search';
 import { parse } from '../../util/urlHelpers';
 import { createResourceLocatorString, pathByRouteName } from '../../util/routes';
+import { FormattedMessage } from '../../util/reactIntl';
 import { makeGetListingsByIdSelector } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 
@@ -53,6 +54,8 @@ export class SearchPageComponent extends Component {
 
     this.state = {
       isSearchMapOpenOnMobile: false,
+      // Desktop: the result list floats over the full-width map and can be hidden
+      isResultsPanelOpen: true,
       isMobileModalOpen: false,
       currentQueryParams: validUrlQueryParamsFromProps(props),
       isSecondaryFiltersOpen: false,
@@ -83,15 +86,9 @@ export class SearchPageComponent extends Component {
   handleSelectCategory(categoryId) {
     const { history, routeConfiguration, location } = this.props;
     const urlQueryParams = validUrlQueryParamsFromProps(this.props);
-    const {
-      pub_categoryLevel1,
-      pub_categoryLevel2,
-      pub_categoryLevel3,
-      ...restParams
-    } = urlQueryParams;
-    const queryParams = categoryId
-      ? { ...restParams, pub_categoryLevel1: categoryId }
-      : restParams;
+    const { pub_categoryLevel1, pub_categoryLevel2, pub_categoryLevel3, ...restParams } =
+      urlQueryParams;
+    const queryParams = categoryId ? { ...restParams, pub_categoryLevel1: categoryId } : restParams;
 
     const { routeName, pathParams } = getSearchPageResourceLocatorStringParams(
       routeConfiguration,
@@ -365,7 +362,34 @@ export class SearchPageComponent extends Component {
       >
         <TopbarContainer rootClassName={topbarClasses} currentSearchParams={validQueryParams} />
         <div id="main-content" className={css.container} role="main">
-          <div className={css.searchResultContainer}>
+          {/* Full-width category bar above the map (tablet & desktop) */}
+          <div className={css.categoryTabsBar}>{categoryTabs(css.categoryTabsBarTabs)}</div>
+
+          {!this.state.isResultsPanelOpen ? (
+            <button
+              type="button"
+              className={css.showResultsPanelButton}
+              onClick={() => this.setState({ isResultsPanelOpen: true })}
+            >
+              <FormattedMessage
+                id="SearchPage.showResultsPanel"
+                values={{ count: totalItems || 0 }}
+              />
+            </button>
+          ) : null}
+
+          <div
+            className={classNames(css.searchResultContainer, {
+              [css.searchResultContainerHidden]: !this.state.isResultsPanelOpen,
+            })}
+          >
+            <button
+              type="button"
+              className={css.hideResultsPanelButton}
+              onClick={() => this.setState({ isResultsPanelOpen: false })}
+            >
+              <FormattedMessage id="SearchPage.hideResultsPanel" />
+            </button>
             {categoryTabs(css.categoryTabsMobile)}
             <SearchFiltersMobile
               className={css.searchFiltersMobileMap}
@@ -509,7 +533,6 @@ export class SearchPageComponent extends Component {
             onManageDisableScrolling={onManageDisableScrolling}
           >
             <div className={css.mapWrapper} data-testid="searchMapContainer">
-              {categoryTabs(css.categoryTabsOnMap)}
               {shouldShowSearchMap ? (
                 <SearchMap
                   reusableContainerClassName={css.map}

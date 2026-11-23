@@ -49,15 +49,8 @@ const SearchResultsPanel = props => {
 
   const cardRenderSizes = isMapVariant => {
     if (isMapVariant) {
-      // Panel width relative to the viewport
-      const panelMediumWidth = 50;
-      const panelLargeWidth = 62.5;
-      return [
-        '(max-width: 767px) 100vw',
-        `(max-width: 1023px) ${panelMediumWidth}vw`,
-        `(max-width: 1920px) ${panelLargeWidth / 2}vw`,
-        `${panelLargeWidth / 3}vw`,
-      ].join(', ');
+      // On tablet & desktop, results are a single column inside a floating panel over the map
+      return ['(max-width: 767px) 100vw', '(max-width: 1023px) 340px', '380px'].join(', ');
     } else {
       // Panel width relative to the viewport
       const panelMediumWidth = 50;

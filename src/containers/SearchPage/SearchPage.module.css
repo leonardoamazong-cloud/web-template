@@ -179,16 +179,105 @@
   padding: 2px 0 0 0;
 
   @media (--viewportMedium) {
-    padding: 0;
-    /**
-     * .container is using flexbox,
-     * This specifies that searchResultContainer is taking 60% from the viewport width
-     */
-    flex-basis: 50%;
+    /* Results float as a panel over the full-width map */
+    position: fixed;
+    top: calc(var(--topbarHeightDesktop) + 56px + 16px);
+    bottom: 16px;
+    left: 16px;
+    width: 340px;
+    padding: 0 0 16px 0;
+    overflow-y: auto;
+
+    background-color: var(--colorWhite);
+    border-radius: 8px;
+    box-shadow: var(--boxShadowPopupLight);
+    z-index: calc(var(--zIndexTopbar) - 2);
   }
 
   @media (--viewportLarge) {
-    flex-basis: 45%;
+    width: 380px;
+  }
+}
+
+.searchResultContainerHidden {
+  @media (--viewportMedium) {
+    display: none;
+  }
+}
+
+/* Full-width bar with category tabs, between the topbar and the map.
+ * Its 56px height is also used to offset .map, .searchResultContainer and .showResultsPanelButton */
+.categoryTabsBar {
+  display: none;
+
+  @media (--viewportMedium) {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: var(--topbarHeightDesktop);
+    left: 0;
+    right: 0;
+    height: 56px;
+    padding: 0 24px;
+
+    background-color: var(--colorWhite);
+    border-bottom: 1px solid var(--colorGrey100);
+    z-index: calc(var(--zIndexTopbar) - 1);
+  }
+
+  @media (--viewportLarge) {
+    padding: 0 36px;
+  }
+}
+
+.categoryTabsBarTabs {
+  width: 100%;
+}
+
+.panelToggleButton {
+  composes: h5 from global;
+  font-weight: var(--fontWeightSemiBold);
+  color: var(--colorGrey700);
+  margin: 0;
+  padding: 0 18px;
+  height: 36px;
+  border-radius: 18px;
+  border: 1px solid var(--colorGrey100);
+  background-color: var(--colorWhite);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--colorGrey300);
+    color: var(--colorGrey900);
+  }
+}
+
+/* Shown over the map when the results panel is hidden */
+.showResultsPanelButton {
+  composes: panelToggleButton;
+  display: none;
+
+  @media (--viewportMedium) {
+    display: block;
+    position: fixed;
+    top: calc(var(--topbarHeightDesktop) + 56px + 16px);
+    left: 16px;
+    box-shadow: var(--boxShadowButton);
+    z-index: calc(var(--zIndexTopbar) - 2);
+  }
+}
+
+/* "Hide list" button at the top of the results panel */
+.hideResultsPanelButton {
+  composes: panelToggleButton;
+  display: none;
+
+  @media (--viewportMedium) {
+    display: block;
+    align-self: flex-end;
+    margin: 12px 12px 0 0;
+    flex-shrink: 0;
   }
 }
 
@@ -279,18 +368,15 @@
   @media (--viewportMedium) {
     /**
      * .container is using flexbox,
-     * This specifies that mapPanel is taking 34% from the viewport width
+     * Map panel takes the full width; the results panel floats over it
      */
-    flex-basis: 50%;
+    flex-basis: 100%;
 
     /* Own layout settings */
     display: flex;
     height: 100%;
   }
 
-  @media (--viewportLarge) {
-    flex-basis: 55%;
-  }
 }
 
 .mapWrapper {
@@ -305,17 +391,13 @@
   @media (--viewportMedium) {
     /* Map is fixed so that it doesn't scroll along search results */
     position: fixed;
-    top: var(--topbarHeightDesktop);
+    top: calc(var(--topbarHeightDesktop) + 56px);
     right: 0;
-    left: unset;
+    left: 0;
 
-    /* Fixed content needs width relative to viewport */
-    width: 50vw;
-    height: calc(100vh - var(--topbarHeightDesktop));
-  }
-
-  @media (--viewportLarge) {
-    width: 55vw;
+    /* Map fills the whole screen under the topbar and the category bar */
+    width: 100vw;
+    height: calc(100vh - var(--topbarHeightDesktop) - 56px);
   }
 }
 
@@ -329,27 +411,5 @@
 
   @media (--viewportMedium) {
     display: none;
-  }
-}
-
-/* Category tabs floating at the top of the map (tablet & desktop) */
-.categoryTabsOnMap {
-  display: none;
-
-  @media (--viewportMedium) {
-    display: block;
-    position: fixed;
-    top: calc(var(--topbarHeightDesktop) + 8px);
-    right: 0;
-    width: 50vw;
-    padding: 0 16px;
-    z-index: calc(var(--zIndexTopbar) - 1);
-
-    /* Let map drag events pass through the empty parts of the bar */
-    pointer-events: none;
-  }
-
-  @media (--viewportLarge) {
-    width: 55vw;
   }
 }
