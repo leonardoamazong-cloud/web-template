@@ -30,8 +30,11 @@ const fetchShowcase = () => (dispatch, getState, sdk) =>
     .then(response => denormalizeAssetData(response.data))
     .catch(() => null);
 
+// Grey placeholder cards shown in a row that has no images yet
+const PLACEHOLDER_COUNT = 6;
+
 /**
- * Turn the Console page sections into carousel rows. Sections without images are skipped.
+ * Turn the Console page sections into carousel rows. Rows without images show placeholders.
  *
  * @param {Object} pageData denormalised page asset
  * @returns {Array<{id: string, title: string, items: Array}>}
@@ -56,7 +59,7 @@ const toRows = pageData => {
         items,
       };
     })
-    .filter(row => row.items.length > 0);
+    .filter(row => row.title || row.items.length > 0);
 };
 
 /**
@@ -134,6 +137,13 @@ const CarouselRow = props => {
           ‹
         </button>
         <ul className={css.track} ref={trackRef} onScroll={updateArrows}>
+          {row.items.length === 0
+            ? [...Array(PLACEHOLDER_COUNT).keys()].map(i => (
+                <li key={`placeholder-${i}`} className={css.item} aria-hidden="true">
+                  <div className={css.imageWrapper} />
+                </li>
+              ))
+            : null}
           {row.items.map(item => (
             <li key={item.id} className={css.item}>
               <CardLink href={item.href} className={css.card}>
