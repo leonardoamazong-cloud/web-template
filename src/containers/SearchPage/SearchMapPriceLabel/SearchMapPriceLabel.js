@@ -7,7 +7,11 @@ import { formatMoney } from '../../../util/currency';
 import { ensureListing } from '../../../util/data';
 import { isPriceVariationsEnabled } from '../../../util/configHelpers';
 
+import { getCategoryColor } from '../CategoryTabs/categoryColors';
 import css from './SearchMapPriceLabel.module.css';
+
+// Max characters of the business name shown on a map marker
+const MAX_MARKER_NAME_LENGTH = 22;
 
 /**
  * SearchMapPriceLabel component
@@ -73,15 +77,35 @@ class SearchMapPriceLabel extends Component {
       ? intl.formatMessage({ id: 'SearchMapInfoCard.priceStartingFrom' }, { priceValue })
       : intl.formatMessage({ id: 'SearchMapInfoCard.price' }, { priceValue });
 
+    // Listings without a price (e.g. inquiry listings) show the business name instead,
+    // tinted with the listing's category color.
+    const businessName = publicData?.isyeriAdi || title || '';
+    const nameLabel =
+      businessName.length > MAX_MARKER_NAME_LENGTH
+        ? `${businessName.slice(0, MAX_MARKER_NAME_LENGTH - 1)}…`
+        : businessName;
+    const showName = !formattedPrice && !!nameLabel;
+    const categoryColor = getCategoryColor(
+      publicData?.categoryLevel1,
+      config.categoryConfiguration?.categories
+    );
+    const colorStyle =
+      showName && categoryColor
+        ? { '--markerBg': categoryColor.bg, '--markerText': categoryColor.text }
+        : null;
+
     const classes = classNames(rootClassName || css.root, className);
     const priceLabelClasses = classNames(css.priceLabel, {
       [css.mapLabelActive]: isActive,
-      [css.noPriceSetLabel]: !formattedPrice,
+      [css.noPriceSetLabel]: !formattedPrice && !showName,
+      [css.nameLabel]: showName,
     });
     const caretClasses = classNames(css.caret, { [css.caretActive]: isActive });
 
     const ariaLabel = priceValue
       ? priceMessage
+      : showName
+      ? businessName
       : intl.formatMessage({ id: 'SearchMapPriceLabel.screenreader.mapMarkerWithoutPrice' });
 
     return (
@@ -89,10 +113,11 @@ class SearchMapPriceLabel extends Component {
         className={classes}
         onClick={() => onListingClicked(currentListing)}
         aria-label={ariaLabel}
+        style={colorStyle}
       >
         <div className={css.caretShadow} />
-        <div className={priceLabelClasses}>{priceMessage}</div>
-        <div className={caretClasses} />
+        <div className={priceLabelClasses}>{showName ? nameLabel : priceMessage}</div>
+        <div className={classNames(caretClasses, { [css.nameCaret]: showName })} />
       </button>
     );
   }

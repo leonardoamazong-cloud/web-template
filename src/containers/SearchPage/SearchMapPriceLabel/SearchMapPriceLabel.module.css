@@ -109,3 +109,17 @@
   background-color: var(--marketplaceColor);
   border-color: var(--marketplaceColor);
 }
+
+/* Business-name marker for listings without a price, tinted with the category color */
+.nameLabel {
+  white-space: nowrap;
+  color: var(--markerText, var(--colorGrey700));
+  background-color: var(--markerBg, var(--colorWhite));
+  border-color: var(--markerText, var(--colorGrey100));
+}
+
+.nameCaret {
+  background-color: var(--markerBg, var(--colorWhite));
+  border-right-color: var(--markerText, var(--colorGrey100));
+  border-bottom-color: var(--markerText, var(--colorGrey100));
+}

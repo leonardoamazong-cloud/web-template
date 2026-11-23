@@ -3,21 +3,8 @@ import classNames from 'classnames';
 
 import { useIntl } from '../../../util/reactIntl';
 
+import { ALL_CATEGORY_COLOR, CATEGORY_COLORS } from './categoryColors';
 import css from './CategoryTabs.module.css';
-
-// Soft (faded) color per category tab, assigned by the category's position in Console.
-// bg = resting tint, text = readable dark shade of the same hue, active = stronger tint.
-const TAB_COLORS = [
-  { bg: '#EEEDFE', text: '#3C3489', active: '#CECBF6' }, // purple
-  { bg: '#FAECE7', text: '#712B13', active: '#F5C4B3' }, // coral
-  { bg: '#E1F5EE', text: '#085041', active: '#9FE1CB' }, // teal
-  { bg: '#FAEEDA', text: '#633806', active: '#FAC775' }, // amber
-  { bg: '#FBEAF0', text: '#72243E', active: '#F4C0D1' }, // pink
-  { bg: '#E6F1FB', text: '#0C447C', active: '#B5D4F4' }, // blue
-  { bg: '#EAF3DE', text: '#27500A', active: '#C0DD97' }, // green
-  { bg: '#F1EFE8', text: '#444441', active: '#D3D1C7' }, // gray
-];
-const ALL_TAB_COLOR = { bg: '#FFFFFF', text: '#444441', active: '#D3D1C7' };
 
 const tabColorStyle = color => ({
   '--tabBg': color.bg,
@@ -46,11 +33,11 @@ const CategoryTabs = props => {
   }
 
   const tabs = [
-    { id: null, name: intl.formatMessage({ id: 'CategoryTabs.all' }), color: ALL_TAB_COLOR },
+    { id: null, name: intl.formatMessage({ id: 'CategoryTabs.all' }), color: ALL_CATEGORY_COLOR },
     ...categories.map(({ id, name }, i) => ({
       id,
       name,
-      color: TAB_COLORS[i % TAB_COLORS.length],
+      color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
     })),
   ];
 
