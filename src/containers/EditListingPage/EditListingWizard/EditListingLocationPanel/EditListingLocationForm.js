@@ -16,6 +16,7 @@ import {
   Form,
   FieldLocationAutocompleteInput,
   Button,
+  FieldTextInput,
 } from '../../../../components';
 
 // Import modules from this directory
@@ -23,8 +24,8 @@ import css from './EditListingLocationForm.module.css';
 
 const identity = v => v;
 
-// Privacy: providers only share their ZIP / postal code, not a street address.
-// The listing is placed on the map at the center of that postal code area.
+// Privacy: the map location is set from a ZIP / postal code only, so the listing is placed
+// at the center of that postal code area. A street address is optional (the 'building' field).
 // Note: place type filtering is supported with Mapbox (the configured map provider).
 const ZIP_CODE_ONLY_PLACE_TYPES = ['postcode'];
 
@@ -78,6 +79,10 @@ export const EditListingLocationForm = props => (
         id: 'EditListingLocationForm.addressNotRecognized',
       });
 
+      const optionalText = intl.formatMessage({
+        id: 'EditListingLocationForm.optionalText',
+      });
+
       const { updateListingError, showListingsError } = fetchErrors || {};
 
       const classes = classNames(rootClassName || css.root, className);
@@ -120,6 +125,18 @@ export const EditListingLocationForm = props => (
               autocompleteSearchRequired(addressRequiredMessage),
               autocompletePlaceSelected(addressNotRecognizedMessage)
             )}
+          />
+
+          {/* Optional street address: shown on the listing page only if the provider adds it */}
+          <FieldTextInput
+            className={css.building}
+            type="text"
+            name="building"
+            id={`${formId}building`}
+            label={intl.formatMessage({ id: 'EditListingLocationForm.building' }, { optionalText })}
+            placeholder={intl.formatMessage({
+              id: 'EditListingLocationForm.buildingPlaceholder',
+            })}
           />
 
           <Button

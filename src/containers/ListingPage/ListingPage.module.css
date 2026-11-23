@@ -723,6 +723,16 @@
   }
 }
 
+.locationAddress {
+  composes: p from global;
+  color: var(--colorGrey700);
+  margin: 0 0 12px 0;
+
+  @media (--viewportMedium) {
+    margin: 0 0 16px 0;
+  }
+}
+
 .map {
   /* Dimensions: Map takes all available space from viewport (excludes action button and section title) */
   height: calc(100vh - 193px);

@@ -28,6 +28,10 @@ const SectionMapMaybe = props => {
   }
 
   const address = publicData && publicData.location ? publicData.location.address : '';
+  // Optional street address given by the provider (stored as location.building).
+  // The map location itself is only a ZIP code area.
+  const streetAddress = publicData?.location?.building?.trim() || '';
+  const displayedAddress = streetAddress ? `${streetAddress}, ${address}` : address;
   const classes = classNames(rootClassName || css.sectionMap, className);
   const cacheKey = listingId ? `${listingId.uuid}_${geolocation.lat}_${geolocation.lng}` : null;
 
@@ -41,6 +45,7 @@ const SectionMapMaybe = props => {
       <Heading as="h2" rootClassName={css.sectionHeadingWithExtraMargin}>
         <FormattedMessage id="ListingPage.locationTitle" />
       </Heading>
+      {displayedAddress ? <p className={css.locationAddress}>{displayedAddress}</p> : null}
       {isStatic ? (
         <button
           className={css.map}

@@ -48,12 +48,13 @@ describe('EditListingDeliveryForm', () => {
     const address = 'EditListingLocationForm.address';
     expect(screen.getByText(address)).toBeInTheDocument();
 
-    // Street-level building field is removed: providers only share a ZIP code
-    expect(screen.queryByText('EditListingLocationForm.building')).not.toBeInTheDocument();
+    const building = 'EditListingLocationForm.building';
+    expect(screen.getByText(building)).toBeInTheDocument();
 
     // Test that save button is disabled at first
     expect(screen.getByRole('button', { name: saveActionMsg })).toBeDisabled();
 
     await user.type(screen.getByTestId('location-search'), '92648');
+    await user.type(screen.getByRole('textbox', { name: building }), '123 Example Street');
   });
 });
