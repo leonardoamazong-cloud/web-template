@@ -23,6 +23,7 @@ const ListingCard = props => {
       : price?.currency
       ? price.currency
       : null;
+  const businessName = publicData?.isyeriAdi || title;
   const firstImage = listing.images && listing.images.length > 0 ? listing.images[0] : null;
 
   const {
@@ -107,7 +108,10 @@ const ListingCard = props => {
           <div className={classNames(css.price, { [css.noPriceSetLabel]: !formattedPrice })}>
             {priceMessage}
           </div>
-          <div className={css.name}>{title}</div>
+          <div className={css.name}>
+            <div className={css.businessName}>{businessName}</div>
+            {businessName !== title ? <div className={css.serviceTitle}>{title}</div> : null}
+          </div>
         </div>
       </div>
     </a>

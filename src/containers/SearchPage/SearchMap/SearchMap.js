@@ -95,15 +95,11 @@ export class SearchMapComponent extends Component {
   }
 
   /**
-   * Clicking a single business marker opens that business's page directly.
-   * Grouped markers (several businesses at the same spot) still open the info card list.
+   * Clicking a marker opens an info card with the business name; clicking the card
+   * opens the business's page.
    * @param {Object|Array} listings single listing or array of listings
    */
   onListingClicked(listings) {
-    if (!Array.isArray(listings)) {
-      this.onListingInfoCardClicked(listings);
-      return;
-    }
     this.setState({ infoCardOpen: listings });
   }
 

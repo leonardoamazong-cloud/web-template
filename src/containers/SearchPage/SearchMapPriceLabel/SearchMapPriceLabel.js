@@ -8,6 +8,7 @@ import { ensureListing } from '../../../util/data';
 import { isPriceVariationsEnabled } from '../../../util/configHelpers';
 
 import { getCategoryColor } from '../CategoryTabs/categoryColors';
+import { CategoryIcon } from './categoryIcons';
 import css from './SearchMapPriceLabel.module.css';
 
 // Max characters of the business name shown on a map marker
@@ -77,14 +78,14 @@ class SearchMapPriceLabel extends Component {
       ? intl.formatMessage({ id: 'SearchMapInfoCard.priceStartingFrom' }, { priceValue })
       : intl.formatMessage({ id: 'SearchMapInfoCard.price' }, { priceValue });
 
-    // Listings without a price (e.g. inquiry listings) show the business name instead,
-    // tinted with the listing's category color.
+    // Listings without a price (e.g. inquiry listings) show their category icon instead,
+    // tinted with the category color. Clicking it opens a card with the business name.
     const businessName = publicData?.isyeriAdi || title || '';
     const nameLabel =
       businessName.length > MAX_MARKER_NAME_LENGTH
         ? `${businessName.slice(0, MAX_MARKER_NAME_LENGTH - 1)}…`
         : businessName;
-    const showName = !formattedPrice && !!nameLabel;
+    const showName = !formattedPrice;
     const categoryColor = getCategoryColor(
       publicData?.categoryLevel1,
       config.categoryConfiguration?.categories
@@ -99,12 +100,13 @@ class SearchMapPriceLabel extends Component {
       [css.mapLabelActive]: isActive,
       [css.noPriceSetLabel]: !formattedPrice && !showName,
       [css.nameLabel]: showName,
+      [css.iconLabel]: showName,
     });
     const caretClasses = classNames(css.caret, { [css.caretActive]: isActive });
 
     const ariaLabel = priceValue
       ? priceMessage
-      : showName
+      : showName && businessName
       ? businessName
       : intl.formatMessage({ id: 'SearchMapPriceLabel.screenreader.mapMarkerWithoutPrice' });
 
@@ -116,7 +118,13 @@ class SearchMapPriceLabel extends Component {
         style={colorStyle}
       >
         <div className={css.caretShadow} />
-        <div className={priceLabelClasses}>{showName ? nameLabel : priceMessage}</div>
+        <div className={priceLabelClasses} title={showName ? nameLabel : undefined}>
+          {showName ? (
+            <CategoryIcon categoryId={publicData?.categoryLevel1} className={css.categoryIcon} />
+          ) : (
+            priceMessage
+          )}
+        </div>
         <div className={classNames(caretClasses, { [css.nameCaret]: showName })} />
       </button>
     );

@@ -93,6 +93,17 @@
   flex-grow: 1;
 }
 
+.businessName {
+  font-weight: var(--fontWeightBold);
+  color: var(--colorGrey700);
+}
+
+.serviceTitle {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--colorGrey500);
+}
+
 .paginationInfo {
   background-color: var(--marketplaceColor);
   color: var(--colorWhite);

@@ -123,3 +123,21 @@
   border-right-color: var(--markerText, var(--colorGrey100));
   border-bottom-color: var(--markerText, var(--colorGrey100));
 }
+
+/* Round category-icon marker */
+.iconLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-width: 2px;
+  border-radius: 50%;
+}
+
+.categoryIcon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
