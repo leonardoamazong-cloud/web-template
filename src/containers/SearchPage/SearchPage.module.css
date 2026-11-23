@@ -354,8 +354,9 @@
     grid-column: 2;
     grid-row: 2;
 
-    /* Own layout settings */
-    display: flex;
+    /* Block (not flex) so the modal wrappers inside stretch to the cell width */
+    display: block;
+    min-width: 0;
     height: 100%;
   }
 
