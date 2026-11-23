@@ -365,8 +365,19 @@ class SearchMapWithMapbox extends Component {
         container: this.state.mapContainer,
         style: 'mapbox://styles/mapbox/streets-v10',
         scrollZoom: false,
-        // Start zoomed to the USA unless the URL already has a search area
-        ...(this.props.bounds ? {} : { bounds: DEFAULT_MAP_BOUNDS }),
+        // Start zoomed to the USA unless the URL already has a search area.
+        // On tablet & desktop, leave room on the left for the floating results panel.
+        ...(this.props.bounds
+          ? {}
+          : {
+              bounds: DEFAULT_MAP_BOUNDS,
+              fitBoundsOptions: {
+                padding:
+                  offsetWidth >= 768
+                    ? { top: 24, bottom: 24, left: offsetWidth >= 1024 ? 432 : 392, right: 24 }
+                    : 16,
+              },
+            }),
       });
       window.mapboxMap = this.map;
 
