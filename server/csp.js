@@ -95,6 +95,9 @@ const defaultDirectives = {
     'picsum.photos',
     '*.picsum.photos',
 
+    // Temporary demo photos in empty showcase carousel rows (CategoryCarousels)
+    'loremflickr.com',
+
     'api.mapbox.com',
     'maps.googleapis.com',
     '*.gstatic.com',
