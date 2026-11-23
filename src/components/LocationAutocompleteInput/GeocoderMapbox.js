@@ -94,19 +94,25 @@ class GeocoderMapbox {
    *
    * @param {String} search query for place names
    *
+   * @param {Array<String>} countryLimit optional ISO 3166 alpha 2 country codes
+   * @param {String} locale locale for the results
+   * @param {Array<String>} placeTypes optional Mapbox place types, e.g. ['postcode']
+   *
    * @return {Promise<{ search: String, predictions: Array<Object>}>}
    * results of the geocoding, should have the original search query
    * and an array of predictions. The format of the predictions is
    * only relevant for the `getPlaceDetails` function below.
    */
-  getPlacePredictions(search, countryLimit, locale) {
+  getPlacePredictions(search, countryLimit, locale, placeTypes) {
     const limitCountriesMaybe = countryLimit ? { countries: countryLimit } : {};
+    const placeTypesMaybe = placeTypes?.length > 0 ? { types: placeTypes } : {};
 
     return this.getClient()
       .geocoding.forwardGeocode({
         query: search,
         limit: 5,
         ...limitCountriesMaybe,
+        ...placeTypesMaybe,
         language: [locale],
       })
       .send()

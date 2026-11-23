@@ -364,7 +364,12 @@ class LocationAutocompleteInputImplementation extends Component {
     this.setState({ fetchingPredictions: true });
 
     return this.getGeocoder()
-      .getPlacePredictions(search, config.maps.search.countryLimit, config.localization.locale)
+      .getPlacePredictions(
+        search,
+        config.maps.search.countryLimit,
+        config.localization.locale,
+        this.props.placeTypes
+      )
       .then(results => {
         const { search: currentSearch } = currentValue(this.props);
         this.setState({ fetchingPredictions: false });
@@ -617,6 +622,8 @@ class LocationAutocompleteInputImplementation extends Component {
  * @param {boolean} props.closeOnBlur
  * @param {string?} props.placeholder
  * @param {boolean} props.useDefaultPredictions
+ * @param {Array<string>?} props.placeTypes limit predictions to these place types (Mapbox only),
+ *   e.g. ['postcode'] to only allow ZIP / postal codes
  * @param {Object} props.input
  * @param {string} props.input.name
  * @param {string|SearchData} props.input.value
