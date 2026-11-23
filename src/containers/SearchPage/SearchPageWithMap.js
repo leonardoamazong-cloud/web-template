@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import { isOriginInUse } from '../../util/search';
 import { parse } from '../../util/urlHelpers';
 import { createResourceLocatorString, pathByRouteName } from '../../util/routes';
-import { FormattedMessage } from '../../util/reactIntl';
 import { makeGetListingsByIdSelector } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 
@@ -54,8 +53,6 @@ export class SearchPageComponent extends Component {
 
     this.state = {
       isSearchMapOpenOnMobile: false,
-      // Desktop: the result list floats over the full-width map and can be hidden
-      isResultsPanelOpen: true,
       isMobileModalOpen: false,
       currentQueryParams: validUrlQueryParamsFromProps(props),
       isSecondaryFiltersOpen: false,
@@ -365,31 +362,7 @@ export class SearchPageComponent extends Component {
           {/* Full-width category bar above the map (tablet & desktop) */}
           <div className={css.categoryTabsBar}>{categoryTabs(css.categoryTabsBarTabs)}</div>
 
-          {!this.state.isResultsPanelOpen ? (
-            <button
-              type="button"
-              className={css.showResultsPanelButton}
-              onClick={() => this.setState({ isResultsPanelOpen: true })}
-            >
-              <FormattedMessage
-                id="SearchPage.showResultsPanel"
-                values={{ count: totalItems || 0 }}
-              />
-            </button>
-          ) : null}
-
-          <div
-            className={classNames(css.searchResultContainer, {
-              [css.searchResultContainerHidden]: !this.state.isResultsPanelOpen,
-            })}
-          >
-            <button
-              type="button"
-              className={css.hideResultsPanelButton}
-              onClick={() => this.setState({ isResultsPanelOpen: false })}
-            >
-              <FormattedMessage id="SearchPage.hideResultsPanel" />
-            </button>
+          <div className={css.searchResultContainer}>
             {categoryTabs(css.categoryTabsMobile)}
             <SearchFiltersMobile
               className={css.searchFiltersMobileMap}

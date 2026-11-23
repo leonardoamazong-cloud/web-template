@@ -179,20 +179,18 @@
   padding: 2px 0 0 0;
 
   @media (--viewportMedium) {
-    /* Results float as a panel over the full-width map */
+    /* Results column on the left; the map fills the rest of the screen on the right */
     position: fixed;
-    top: calc(var(--topbarHeightDesktop) + 56px + 16px);
-    bottom: 16px;
-    left: 16px;
+    top: calc(var(--topbarHeightDesktop) + 56px);
+    bottom: 0;
+    left: 0;
     width: 360px;
     padding: 0 0 16px 0;
     overflow-x: hidden;
     overflow-y: auto;
 
     background-color: var(--colorWhite);
-    border-radius: 8px;
-    box-shadow: var(--boxShadowPopupLight);
-    z-index: calc(var(--zIndexTopbar) - 2);
+    border-right: 1px solid var(--colorGrey100);
   }
 
   @media (--viewportLarge) {
@@ -200,14 +198,8 @@
   }
 }
 
-.searchResultContainerHidden {
-  @media (--viewportMedium) {
-    display: none;
-  }
-}
-
 /* Full-width bar with category tabs, between the topbar and the map.
- * Its 56px height is also used to offset .map, .searchResultContainer and .showResultsPanelButton */
+ * Its 56px height is also used to offset .map and .searchResultContainer */
 .categoryTabsBar {
   display: none;
 
@@ -233,53 +225,6 @@
 
 .categoryTabsBarTabs {
   width: 100%;
-}
-
-.panelToggleButton {
-  composes: h5 from global;
-  font-weight: var(--fontWeightSemiBold);
-  color: var(--colorGrey700);
-  margin: 0;
-  padding: 0 18px;
-  height: 36px;
-  border-radius: 18px;
-  border: 1px solid var(--colorGrey100);
-  background-color: var(--colorWhite);
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--colorGrey300);
-    color: var(--colorGrey900);
-  }
-}
-
-/* Shown over the map when the results panel is hidden */
-.showResultsPanelButton {
-  composes: panelToggleButton;
-  display: none;
-
-  @media (--viewportMedium) {
-    display: block;
-    position: fixed;
-    top: calc(var(--topbarHeightDesktop) + 56px + 16px);
-    left: 16px;
-    box-shadow: var(--boxShadowButton);
-    z-index: calc(var(--zIndexTopbar) - 2);
-  }
-}
-
-/* "Hide list" button at the top of the results panel */
-.hideResultsPanelButton {
-  composes: panelToggleButton;
-  display: none;
-
-  @media (--viewportMedium) {
-    display: block;
-    align-self: flex-end;
-    margin: 12px 12px 0 0;
-    flex-shrink: 0;
-  }
 }
 
 .error {
@@ -391,11 +336,16 @@
     position: fixed;
     top: calc(var(--topbarHeightDesktop) + 56px);
     right: 0;
-    left: 0;
+    left: 360px;
 
-    /* Map fills the whole screen under the topbar and the category bar */
-    width: 100vw;
+    /* Map fills the screen right of the results column, under the category bar */
+    width: calc(100vw - 360px);
     height: calc(100vh - var(--topbarHeightDesktop) - 56px);
+  }
+
+  @media (--viewportLarge) {
+    left: 400px;
+    width: calc(100vw - 400px);
   }
 }
 
