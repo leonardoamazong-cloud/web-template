@@ -1,77 +1,91 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import classNames from 'classnames';
 
-import { useConfiguration } from '../../../context/configurationContext';
-import { FormattedMessage, useIntl } from '../../../util/reactIntl';
-import { createImageVariantConfig } from '../../../util/sdkLoader';
-import { denormalisedResponseEntities } from '../../../util/data';
+import { useIntl } from '../../../util/reactIntl';
+import { denormalizeAssetData } from '../../../util/data';
 
-import { ListingCard } from '../../../components';
+import { ExternalLink, ResponsiveImage } from '../../../components';
 
 import css from './CategoryCarousels.module.css';
 
-// How many listings each category row can show (about 5 are visible at once on desktop)
-const MAX_LISTINGS_PER_CATEGORY = 15;
+// Console > Content > Pages > page with this ID holds the showcase images.
+// Each section of that page becomes one carousel row (section title = row title,
+// each block's image + title + optional button link = one card).
+export const SHOWCASE_ASSET_PATH = 'content/pages/showcase.json';
+
+// Max cards per row (about 4.5 are visible at once on desktop)
+const MAX_ITEMS_PER_ROW = 15;
 
 /**
- * Thunk: fetch the newest listings of one top-level category, with their first image.
+ * Thunk: fetch the operator's showcase page from Sharetribe hosted assets.
  * Rendered client-side only (below the fold), so it is not part of the page's loadData.
  *
- * @param {string} categoryId pub_categoryLevel1 value
- * @param {Object} config app configuration
- * @returns {Function} thunk resolving to an array of denormalised listings
+ * @returns {Function} thunk resolving to the denormalised page data, or null if missing
  */
-const fetchCategoryListings = (categoryId, config) => (dispatch, getState, sdk) => {
-  const {
-    aspectWidth = 1,
-    aspectHeight = 1,
-    variantPrefix = 'listing-card',
-  } = config.layout.listingImage;
-  const aspectRatio = aspectHeight / aspectWidth;
+const fetchShowcase = () => (dispatch, getState, sdk) =>
+  sdk
+    .assetByAlias({ path: SHOWCASE_ASSET_PATH, alias: 'latest' })
+    .then(response => denormalizeAssetData(response.data))
+    .catch(() => null);
 
-  return sdk.listings
-    .query({
-      pub_categoryLevel1: categoryId,
-      perPage: MAX_LISTINGS_PER_CATEGORY,
-      include: ['author', 'images'],
-      'fields.listing': [
-        'title',
-        'price',
-        'deleted',
-        'state',
-        'publicData.listingType',
-        'publicData.transactionProcessAlias',
-        'publicData.unitType',
-        'publicData.cardStyle',
-      ],
-      'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
-      'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
-      ...createImageVariantConfig(`${variantPrefix}`, 400, aspectRatio),
-      ...createImageVariantConfig(`${variantPrefix}-2x`, 800, aspectRatio),
-      'limit.images': 1,
+/**
+ * Turn the Console page sections into carousel rows. Sections without images are skipped.
+ *
+ * @param {Object} pageData denormalised page asset
+ * @returns {Array<{id: string, title: string, items: Array}>}
+ */
+const toRows = pageData => {
+  const sections = pageData?.sections || [];
+  return sections
+    .map((section, i) => {
+      const items = (section.blocks || [])
+        .filter(block => block?.media?.image?.attributes?.variants)
+        .slice(0, MAX_ITEMS_PER_ROW)
+        .map((block, j) => ({
+          id: block.blockId || `${i}-${j}`,
+          image: block.media.image,
+          alt: block.media.alt || block.title?.content || '',
+          title: block.title?.content || '',
+          href: block.callToAction?.href || block.media?.link?.href || null,
+        }));
+      return { id: section.sectionId || `section-${i}`, title: section.title?.content || '', items };
     })
-    .then(response => denormalisedResponseEntities(response));
+    .filter(row => row.items.length > 0);
 };
 
 /**
- * One horizontally scrolling row of listings for a single category, with previous/next arrows.
+ * Link wrapper: internal paths use the app router, other URLs open in a new tab.
+ */
+const CardLink = props => {
+  const { href, className, children } = props;
+  if (!href) {
+    return <div className={className}>{children}</div>;
+  }
+  return href.startsWith('/') ? (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <ExternalLink href={href} className={className}>
+      {children}
+    </ExternalLink>
+  );
+};
+
+/**
+ * One horizontally scrolling row of showcase images with arrows on both sides.
  *
  * @component
  * @param {Object} props
- * @param {{id: string, name: string}} props.category top-level category
- * @param {Function} props.onShowOnMap called with the category id
+ * @param {{id: string, title: string, items: Array}} props.row
  * @returns {JSX.Element}
  */
-const CategoryRow = props => {
-  const { category, onShowOnMap } = props;
-  const config = useConfiguration();
+const CarouselRow = props => {
+  const { row } = props;
   const intl = useIntl();
-  const dispatch = useDispatch();
   const trackRef = useRef(null);
-
-  const [listings, setListings] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
 
@@ -85,27 +99,10 @@ const CategoryRow = props => {
   };
 
   useEffect(() => {
-    let isMounted = true;
-    dispatch(fetchCategoryListings(category.id, config))
-      .then(result => {
-        if (isMounted) {
-          setListings(result);
-          setIsLoading(false);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [category.id]);
-
-  useEffect(() => {
     updateArrows();
-  }, [listings]);
+    window.addEventListener('resize', updateArrows);
+    return () => window.removeEventListener('resize', updateArrows);
+  }, []);
 
   // Move by roughly one "page" of visible cards
   const scrollByPage = direction => {
@@ -115,88 +112,89 @@ const CategoryRow = props => {
     }
   };
 
-  const headingId = `category-row-${category.id}`;
+  const headingId = `showcase-row-${row.id}`;
 
   return (
     <section className={css.row} aria-labelledby={headingId}>
-      <div className={css.rowHeader}>
-        <h3 id={headingId} className={css.rowTitle}>
-          {category.name}
-        </h3>
-        <div className={css.rowActions}>
-          <button type="button" className={css.showOnMap} onClick={() => onShowOnMap(category.id)}>
-            <FormattedMessage id="CategoryCarousels.showOnMap" />
-          </button>
-          <button
-            type="button"
-            className={css.arrow}
-            onClick={() => scrollByPage(-1)}
-            disabled={!canScrollPrev}
-            aria-label={intl.formatMessage({ id: 'CategoryCarousels.previous' })}
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            className={css.arrow}
-            onClick={() => scrollByPage(1)}
-            disabled={!canScrollNext}
-            aria-label={intl.formatMessage({ id: 'CategoryCarousels.next' })}
-          >
-            ›
-          </button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <p className={css.message}>
-          <FormattedMessage id="CategoryCarousels.loading" />
-        </p>
-      ) : listings.length === 0 ? (
-        <p className={css.message}>
-          <FormattedMessage id="CategoryCarousels.empty" />
-        </p>
-      ) : (
+      <h3 id={headingId} className={css.rowTitle}>
+        {row.title}
+      </h3>
+      <div className={css.carousel}>
+        <button
+          type="button"
+          className={classNames(css.arrow, css.arrowPrev)}
+          onClick={() => scrollByPage(-1)}
+          disabled={!canScrollPrev}
+          aria-label={intl.formatMessage({ id: 'CategoryCarousels.previous' })}
+        >
+          ‹
+        </button>
         <ul className={css.track} ref={trackRef} onScroll={updateArrows}>
-          {listings.map(l => (
-            <li key={l.id.uuid} className={css.item}>
-              <ListingCard
-                listing={l}
-                showAuthorInfo={false}
-                renderSizes="(max-width: 767px) 60vw, (max-width: 1023px) 30vw, 20vw"
-              />
+          {row.items.map(item => (
+            <li key={item.id} className={css.item}>
+              <CardLink href={item.href} className={css.card}>
+                <div className={css.imageWrapper}>
+                  <ResponsiveImage
+                    rootClassName={css.image}
+                    alt={item.alt}
+                    image={item.image}
+                    variants={Object.keys(item.image.attributes.variants)}
+                    sizes="(max-width: 767px) 70vw, (max-width: 1023px) 35vw, 25vw"
+                  />
+                </div>
+                {item.title ? <p className={css.cardTitle}>{item.title}</p> : null}
+              </CardLink>
             </li>
           ))}
         </ul>
-      )}
+        <button
+          type="button"
+          className={classNames(css.arrow, css.arrowNext)}
+          onClick={() => scrollByPage(1)}
+          disabled={!canScrollNext}
+          aria-label={intl.formatMessage({ id: 'CategoryCarousels.next' })}
+        >
+          ›
+        </button>
+      </div>
     </section>
   );
 };
 
 /**
- * Category rows shown below the map: one horizontally scrolling carousel per top-level category.
+ * Showcase rows below the map: the marketplace operator's own images, one carousel per
+ * section of the "showcase" page in Sharetribe Console. Renders nothing until that page exists.
  *
  * @component
  * @param {Object} props
  * @param {string?} props.className add more style rules in addition to component's own css.root
- * @param {Array<{id: string, name: string}>} props.categories top-level categories
- * @param {Function} props.onShowOnMap called with a category id to filter the map above
  * @returns {JSX.Element|null}
  */
 const CategoryCarousels = props => {
-  const { className, categories = [], onShowOnMap } = props;
+  const { className } = props;
+  const dispatch = useDispatch();
+  const [rows, setRows] = useState([]);
 
-  if (!categories.length) {
+  useEffect(() => {
+    let isMounted = true;
+    dispatch(fetchShowcase()).then(pageData => {
+      if (isMounted) {
+        setRows(toRows(pageData));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!rows.length) {
     return null;
   }
 
   return (
     <div className={classNames(css.root, className)}>
-      <h2 className={css.title}>
-        <FormattedMessage id="CategoryCarousels.title" />
-      </h2>
-      {categories.map(category => (
-        <CategoryRow key={category.id} category={category} onShowOnMap={onShowOnMap} />
+      {rows.map(row => (
+        <CarouselRow key={row.id} row={row} />
       ))}
     </div>
   );

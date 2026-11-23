@@ -527,17 +527,8 @@ export class SearchPageComponent extends Component {
             </div>
           </ModalInMobile>
 
-          {/* Below the map: one scrolling row of listings per category */}
-          <CategoryCarousels
-            className={css.categoryCarousels}
-            categories={listingCategories}
-            onShowOnMap={categoryId => {
-              this.handleSelectCategory(categoryId);
-              if (typeof window !== 'undefined') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }}
-          />
+          {/* Below the map: the operator's showcase images, one scrolling row per section */}
+          <CategoryCarousels className={css.categoryCarousels} />
         </div>
       </Page>
     );
