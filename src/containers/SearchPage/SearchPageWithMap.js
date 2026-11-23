@@ -25,6 +25,7 @@ import {
   onSortBy,
 } from './SearchPage.shared';
 
+import CategoryCarousels from './CategoryCarousels/CategoryCarousels';
 import CategoryTabs from './CategoryTabs/CategoryTabs';
 import FilterComponent from './FilterComponent';
 import SearchMap from './SearchMap/SearchMap';
@@ -358,11 +359,11 @@ export class SearchPageComponent extends Component {
         schema={schema}
       >
         <TopbarContainer rootClassName={topbarClasses} currentSearchParams={validQueryParams} />
-        <div id="main-content" className={css.container} role="main">
+        <div id="main-content" className={css.containerMapVariant} role="main">
           {/* Full-width category bar above the map (tablet & desktop) */}
           <div className={css.categoryTabsBar}>{categoryTabs(css.categoryTabsBarTabs)}</div>
 
-          <div className={css.searchResultContainer}>
+          <div className={css.searchResultContainerMapVariant}>
             {categoryTabs(css.categoryTabsMobile)}
             <SearchFiltersMobile
               className={css.searchFiltersMobileMap}
@@ -525,6 +526,18 @@ export class SearchPageComponent extends Component {
               ) : null}
             </div>
           </ModalInMobile>
+
+          {/* Below the map: one scrolling row of listings per category */}
+          <CategoryCarousels
+            className={css.categoryCarousels}
+            categories={listingCategories}
+            onShowOnMap={categoryId => {
+              this.handleSelectCategory(categoryId);
+              if (typeof window !== 'undefined') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          />
         </div>
       </Page>
     );
