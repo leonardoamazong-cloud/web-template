@@ -2,6 +2,8 @@
 
 /* Desktop */
 .root {
+  position: relative;
+
   /* Size */
   width: 100%;
   height: var(--topbarHeightDesktop);
@@ -21,6 +23,26 @@
 
   @media (--viewportLarge) {
     padding: 0 24px 0 0;
+  }
+
+  /* Colorful strip along the bottom of the topbar, one segment per category color */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      #7f77dd 0 16.66%,
+      #d85a30 16.66% 33.33%,
+      #1d9e75 33.33% 50%,
+      #ef9f27 50% 66.66%,
+      #d4537e 66.66% 83.33%,
+      #378add 83.33% 100%
+    );
+    pointer-events: none;
   }
 }
 
