@@ -96,6 +96,25 @@ class FilterPopup extends Component {
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.toggleIsOpen = this.toggleIsOpen.bind(this);
     this.positionStyleForContent = this.positionStyleForContent.bind(this);
+    this.handleReposition = this.handleReposition.bind(this);
+  }
+
+  componentDidMount() {
+    // The popup uses fixed positioning so that scrollable panels (e.g. the result list next to
+    // the map) don't clip it. Keep it attached to its button while the page or panel scrolls.
+    window.addEventListener('scroll', this.handleReposition, true);
+    window.addEventListener('resize', this.handleReposition);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleReposition, true);
+    window.removeEventListener('resize', this.handleReposition);
+  }
+
+  handleReposition() {
+    if (this.state.isOpen) {
+      this.forceUpdate();
+    }
   }
 
   handleSubmit(values) {
@@ -174,23 +193,25 @@ class FilterPopup extends Component {
 
   positionStyleForContent() {
     if (this.filter && this.filterContent) {
-      // Render the filter content to the right from the menu
-      // unless there's no space in which case it is rendered
-      // to the left
-      const distanceToRight = window.innerWidth - this.filter.getBoundingClientRect().right;
+      // Render the filter content below the button, starting from its left edge,
+      // unless there's no space in which case it is aligned to the button's right edge.
+      // Fixed positioning keeps the popup visible even inside scrollable/clipping containers.
+      const rect = this.filter.getBoundingClientRect();
       const labelWidth = this.filter.offsetWidth;
-      const contentWidth = this.filterContent.offsetWidth;
-      const contentWidthBiggerThanLabel = contentWidth - labelWidth;
-      const renderToRight = distanceToRight > contentWidthBiggerThanLabel;
+      const contentWidth = Math.max(this.filterContent.offsetWidth, labelWidth);
       const contentPlacementOffset = this.props.contentPlacementOffset || 0;
+      const viewportMargin = 8;
 
-      const offset = renderToRight
-        ? { left: contentPlacementOffset }
-        : { right: contentPlacementOffset };
+      const leftAligned = rect.left + contentPlacementOffset;
+      const fitsToRight = leftAligned + contentWidth <= window.innerWidth - viewportMargin;
+      const left = fitsToRight
+        ? leftAligned
+        : Math.max(viewportMargin, rect.right - contentPlacementOffset - contentWidth);
+
       // set a min-width if the content is narrower than the label
-      const minWidth = contentWidth < labelWidth ? { minWidth: labelWidth } : null;
+      const minWidth = this.filterContent.offsetWidth < labelWidth ? { minWidth: labelWidth } : null;
 
-      return { ...offset, ...minWidth };
+      return { position: 'fixed', top: rect.bottom, left, right: 'auto', ...minWidth };
     }
     return {};
   }
