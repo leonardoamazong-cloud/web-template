@@ -364,7 +364,7 @@ class SearchMapWithMapbox extends Component {
       this.map = new window.mapboxgl.Map({
         container: this.state.mapContainer,
         style: 'mapbox://styles/mapbox/streets-v10',
-        scrollZoom: false,
+        scrollZoom: true, // mouse-wheel / trackpad zoom on the search map
         // Start zoomed to the USA unless the URL already has a search area
         ...(this.props.bounds
           ? {}
