@@ -12,7 +12,9 @@
 }
 
 .tabList {
+  /* Always a single row; scrolls sideways only if the screen is too narrow */
   display: flex;
+  flex-wrap: nowrap;
   gap: 6px;
   margin: 0;
   padding: 6px 0;
@@ -53,8 +55,12 @@
   }
 
   @media (--viewportMedium) {
-    height: 40px;
-    padding: 0 20px;
+    height: 36px;
+    padding: 0 12px;
+  }
+
+  @media (--viewportLarge) {
+    padding: 0 16px;
   }
 }
 
