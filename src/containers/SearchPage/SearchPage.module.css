@@ -186,6 +186,7 @@
     left: 16px;
     width: 340px;
     padding: 0 0 16px 0;
+    overflow-x: hidden;
     overflow-y: auto;
 
     background-color: var(--colorWhite);

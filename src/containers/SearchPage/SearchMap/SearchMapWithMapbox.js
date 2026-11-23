@@ -362,7 +362,8 @@ class SearchMapWithMapbox extends Component {
       window.mapboxMap = this.map;
 
       var nav = new window.mapboxgl.NavigationControl({ showCompass: false });
-      this.map.addControl(nav, 'top-left');
+      // Top-right: the results panel floats over the left side of the map
+      this.map.addControl(nav, 'top-right');
 
       this.map.on('moveend', this.onMoveend);
 
