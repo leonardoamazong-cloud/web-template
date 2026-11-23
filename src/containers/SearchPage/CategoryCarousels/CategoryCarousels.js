@@ -50,7 +50,11 @@ const toRows = pageData => {
           title: block.title?.content || '',
           href: block.callToAction?.href || block.media?.link?.href || null,
         }));
-      return { id: section.sectionId || `section-${i}`, title: section.title?.content || '', items };
+      return {
+        id: section.sectionId || `section-${i}`,
+        title: section.title?.content || '',
+        items,
+      };
     })
     .filter(row => row.items.length > 0);
 };
