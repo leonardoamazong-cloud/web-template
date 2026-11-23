@@ -449,6 +449,9 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
         'publicData.shippingEnabled',
         'publicData.priceVariationsEnabled',
         'publicData.priceVariants',
+        // Used by map markers: category color and business name
+        'publicData.categoryLevel1',
+        'publicData.isyeriAdi',
       ],
       'fields.user': ['profile.displayName', 'profile.abbreviatedName'],
       'fields.image': [
