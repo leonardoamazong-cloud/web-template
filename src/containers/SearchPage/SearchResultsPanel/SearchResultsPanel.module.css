@@ -69,5 +69,4 @@
 /* Cards in the list next to the map are a third smaller (both width and height) */
 .listingCardMapVariant {
   width: 66.67%;
-  margin: 0 auto;
 }
