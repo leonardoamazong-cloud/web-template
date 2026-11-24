@@ -6,7 +6,10 @@ import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
 import { denormalisedResponseEntities } from '../../../util/data';
 import { createSlug } from '../../../util/urlHelpers';
-import { BUSINESS_PAGE_LISTING_TYPE } from '../../../util/businessPage';
+import {
+  BUSINESS_PAGE_LISTING_TYPE,
+  fetchBusinessPagesByAuthor,
+} from '../../../util/businessPage';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
 
@@ -33,12 +36,24 @@ const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) 
       pub_categoryLevel1: categoryId,
       ...(productListingTypes.length > 0 ? { pub_listingType: productListingTypes } : {}),
       perPage: MAX_ITEMS_PER_ROW,
-      include: ['images'],
+      include: ['images', 'author'],
       'fields.listing': ['title', 'publicData'],
       'fields.image': ['variants.scaled-small', 'variants.scaled-medium'],
       'limit.images': 1,
     })
     .then(response => denormalisedResponseEntities(response))
+    .then(listings =>
+      fetchBusinessPagesByAuthor(
+        sdk,
+        listings.map(l => l.author?.id?.uuid),
+        denormalisedResponseEntities
+      ).then(pagesByAuthor =>
+        listings.map(listing => ({
+          listing,
+          sellerPage: pagesByAuthor[listing.author?.id?.uuid] || null,
+        }))
+      )
+    )
     .catch(() => []);
 };
 
@@ -98,17 +113,19 @@ const CarouselRow = props => {
           ‹
         </button>
         <ul className={css.track} ref={trackRef} onScroll={updateArrows}>
-          {row.items.map(listing => {
+          {row.items.map(({ listing, sellerPage }) => {
             const { title, publicData } = listing.attributes;
+            // Open the seller's business page; fall back to the product page
+            const target = sellerPage || listing;
             const firstImage = listing.images?.[0];
             const image = firstImage?.attributes?.variants ? firstImage : null;
-            const businessName = publicData?.isyeriAdi;
+            const businessName = sellerPage?.attributes?.title || publicData?.isyeriAdi;
             return (
               <li key={listing.id.uuid} className={css.item}>
                 <NamedLink
                   className={css.card}
                   name="ListingPage"
-                  params={{ id: listing.id.uuid, slug: createSlug(title) }}
+                  params={{ id: target.id.uuid, slug: createSlug(target.attributes.title) }}
                 >
                   <div className={css.imageWrapper}>
                     {image ? (

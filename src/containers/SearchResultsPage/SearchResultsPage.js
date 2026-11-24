@@ -137,15 +137,18 @@ const SellerCard = ({ listing, categories }) => {
   );
 };
 
+// Product cards open the seller's business page (shop photos, gallery, services);
+// if the seller has no business page yet, the product page opens instead.
 const ProductCard = ({ listing, sellerPage, intl, config }) => {
   const { title, price } = listing.attributes;
   const image = imageOf(listing);
   const formattedPrice =
     price && price.currency === config.currency ? formatMoney(intl, price) : null;
   const authorName = listing.author?.attributes?.profile?.displayName;
+  const target = sellerPage || listing;
   return (
     <div className={css.productCard}>
-      <NamedLink className={css.card} name="ListingPage" params={listingLinkParams(listing)}>
+      <NamedLink className={css.card} name="ListingPage" params={listingLinkParams(target)}>
         <div className={css.imageWrapper}>
           {image ? (
             <ResponsiveImage
@@ -168,10 +171,7 @@ const ProductCard = ({ listing, sellerPage, intl, config }) => {
           name="ListingPage"
           params={listingLinkParams(sellerPage)}
         >
-          <FormattedMessage
-            id="SearchResultsPage.visitSeller"
-            values={{ seller: sellerPage.attributes.title }}
-          />
+          {sellerPage.attributes.title}
         </NamedLink>
       ) : authorName ? (
         <span className={css.sellerName}>{authorName}</span>
@@ -182,7 +182,7 @@ const ProductCard = ({ listing, sellerPage, intl, config }) => {
 
 /**
  * Search results page: keyword search over sellers (business pages) and products.
- * Product cards open the product page and link to the seller's business page.
+ * Product cards open the seller's business page.
  *
  * @component
  * @returns {JSX.Element}

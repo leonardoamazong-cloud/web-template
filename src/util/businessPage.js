@@ -47,3 +47,28 @@ export const getBusinessCategoryIds = publicData => {
   }
   return publicData?.categoryLevel1 ? [publicData.categoryLevel1] : [];
 };
+
+/**
+ * Find the business page of each given seller (one small query per seller).
+ *
+ * @param {Object} sdk Sharetribe SDK instance
+ * @param {Array<string>} authorIds user uuids
+ * @param {Function} denormalise response -> entities (denormalisedResponseEntities)
+ * @returns {Promise<Object>} map: author uuid -> business page listing
+ */
+export const fetchBusinessPagesByAuthor = (sdk, authorIds, denormalise) =>
+  Promise.all(
+    [...new Set(authorIds.filter(Boolean))].map(authorId =>
+      sdk.listings
+        .query({
+          authorId,
+          pub_listingType: BUSINESS_PAGE_LISTING_TYPE,
+          perPage: 1,
+          'fields.listing': ['title'],
+        })
+        .then(res => [authorId, denormalise(res)[0] || null])
+        .catch(() => [authorId, null])
+    )
+  ).then(pairs =>
+    pairs.reduce((acc, [authorId, page]) => (page ? { ...acc, [authorId]: page } : acc), {})
+  );
