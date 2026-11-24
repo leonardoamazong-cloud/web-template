@@ -53,7 +53,7 @@ const FILTER_DROPDOWN_OFFSET = -14;
 
 // Business pages have no price and use the category tabs + "Categories you work in" filter,
 // so the built-in category, listing type and price filters are not shown next to the map.
-const HIDDEN_MAP_SEARCH_FILTERS = ['categoryLevel', 'listingType', 'price'];
+const HIDDEN_MAP_SEARCH_FILTERS = ['categoryLevel', 'listingType', 'price', BUSINESS_CATEGORIES_KEY];
 const isShownOnMapSearch = filterConfig => !HIDDEN_MAP_SEARCH_FILTERS.includes(filterConfig.key);
 
 // "has_any:a,b" -> ['a', 'b']

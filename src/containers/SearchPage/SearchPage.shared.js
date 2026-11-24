@@ -1,4 +1,5 @@
 import { SCHEMA_TYPE_ENUM, SCHEMA_TYPE_MULTI_ENUM } from '../../util/types';
+import { BUSINESS_PAGE_LISTING_TYPE, BUSINESS_CATEGORIES_KEY } from '../../util/businessPage';
 import { omit } from '../../util/common';
 import { createResourceLocatorString, matchPathname } from '../../util/routes';
 import {
@@ -149,7 +150,11 @@ export const validURLParamForExtendedData = (
     const { schemaType, enumOptions = [], filterConfig } = listingFieldFilterConfig;
     if ([SCHEMA_TYPE_ENUM, SCHEMA_TYPE_MULTI_ENUM].includes(schemaType)) {
       const isSchemaTypeMultiEnum = schemaType === SCHEMA_TYPE_MULTI_ENUM;
-      const searchMode = filterConfig?.searchMode;
+      // Business categories (category tab checkboxes) match businesses in ANY ticked category
+      const searchMode =
+        queryParamName === `pub_${BUSINESS_CATEGORIES_KEY}`
+          ? 'has_any'
+          : filterConfig?.searchMode;
 
       // Pick valid select options only
       const valueArray = parseSelectFilterOptions(paramValue);
@@ -438,7 +443,13 @@ export const pickListingFieldFilters = params => {
     : {};
 
   const { listingType: listingTypeParam } = currentPathParams;
-  const listingTypeParamMaybe = listingTypeParam ? { pub_listingType: listingTypeParam } : {};
+  // The search page shows business pages unless a listing type is given (see SearchPage.duck.js),
+  // so filters of business page fields (e.g. "Categories you work in") are valid there.
+  const listingTypeParamMaybe = listingTypeParam
+    ? { pub_listingType: listingTypeParam }
+    : searchParams.pub_listingType
+    ? {}
+    : { pub_listingType: BUSINESS_PAGE_LISTING_TYPE };
   const validListingTypeParamNames = activeListingTypes
     ? validURLParamForListingTypeData(activeListingTypes, {
         ...searchParams,
