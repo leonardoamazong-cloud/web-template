@@ -80,9 +80,13 @@ export const omitLimitedListingFieldParams = (searchParams, filterConfigs) => {
     );
     const currentCategories = Object.values(validNestedCategoryParamNames);
     const isForCategory = isFieldForCategory(currentCategories, foundConfig);
+    const listingTypesFromParams = Object.values(validListingTypeParamNames);
+    // Without a listing type, the search page shows business pages (see SearchPage.duck.js)
     const currentListingType = listingTypePathParam
       ? [listingTypePathParam]
-      : Object.values(validListingTypeParamNames);
+      : listingTypesFromParams.length > 0
+      ? listingTypesFromParams
+      : [BUSINESS_PAGE_LISTING_TYPE];
     const isForListingType = isFieldForListingType(currentListingType, foundConfig);
     const searchParamMaybe =
       !foundConfig || (foundConfig && isForCategory && isForListingType)
