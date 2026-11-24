@@ -189,7 +189,7 @@ const CategoryCarousels = props => {
   return (
     <div className={classNames(css.root, className)}>
       {rows.map(row => (
-        <CarouselRow key={row.id} row={row} variantPrefix={variantPrefix} />
+        <CarouselRow key={row.id} row={row} />
       ))}
     </div>
   );
