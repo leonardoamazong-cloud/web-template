@@ -14,6 +14,7 @@ import { constructQueryParamName, isOriginInUse } from '../../util/search';
 import { hasPermissionToViewData, isUserAuthorized } from '../../util/userHelpers';
 import { parse } from '../../util/urlHelpers';
 import { getReferralParams } from '../../util/webStorageHelpers';
+import { BUSINESS_PAGE_LISTING_TYPE, BUSINESS_CATEGORIES_KEY } from '../../util/businessPage';
 
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 
@@ -316,6 +317,9 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
       listingTypePathParam,
       isListingTypeVariant
     ),
+    // The map search shows sellers' business pages (one per seller); their services are listed
+    // on each business page.
+    ...(isListingTypeVariant ? {} : { pub_listingType: BUSINESS_PAGE_LISTING_TYPE }),
     ...priceMaybe,
     ...datesMaybe,
     ...stockMaybe,
@@ -451,6 +455,7 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
         'publicData.priceVariants',
         // Used by map markers: category color and business name
         'publicData.categoryLevel1',
+        `publicData.${BUSINESS_CATEGORIES_KEY}`,
         'publicData.isyeriAdi',
       ],
       'fields.user': ['profile.displayName', 'profile.abbreviatedName'],

@@ -56,6 +56,9 @@ import CustomListingFields from './CustomListingFields';
 import Notifications from './Notifications/Notifications';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
+import BusinessPage from './BusinessPage/BusinessPage';
+import { isBusinessPageListing } from '../../util/businessPage';
+
 import css from './ListingPage.module.css';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
@@ -239,6 +242,77 @@ export const ListingPageComponent = props => {
       }}
     />
   );
+
+  // Seller business pages have their own layout
+  if (isBusinessPageListing(currentListing)) {
+    return (
+      <Page
+        title={schemaTitle}
+        scrollingDisabled={scrollingDisabled}
+        author={authorDisplayName}
+        description={description}
+        facebookImages={facebookImages}
+        twitterImages={twitterImages}
+        {...noIndexMaybe}
+        schema={{
+          '@context': 'http://schema.org',
+          '@type': 'LocalBusiness',
+          description: description,
+          name: schemaTitle,
+          image: schemaImages,
+        }}
+      >
+        <LayoutSingleColumn className={css.pageRoot} topbar={topbar} footer={<FooterContainer />}>
+          <BusinessPage
+            listing={currentListing}
+            config={config}
+            listingFields={listingConfig.listingFields}
+            isOwnListing={isOwnListing}
+            onContactUser={onContactUser}
+            notifications={
+              <Notifications
+                mounted={mounted}
+                listing={currentListing}
+                isOwnListing={isOwnListing}
+                noPayoutDetailsSetWithOwnListing={noPayoutDetailsSetWithOwnListing}
+                currentUser={currentUser}
+                className={css.actionBarForProductLayout}
+                editParams={{
+                  id: listingId.uuid,
+                  slug: listingSlug,
+                  type: listingPathParamType,
+                  tab: listingTab,
+                }}
+              />
+            }
+            mapSection={
+              <SectionMapMaybe
+                geolocation={geolocation}
+                publicData={publicData}
+                listingId={currentListing.id}
+                mapsConfig={config.maps}
+              />
+            }
+            authorSection={
+              <SectionAuthorMaybe
+                title={title}
+                listing={currentListing}
+                authorDisplayName={authorDisplayName}
+                onContactUser={onContactUser}
+                isInquiryModalOpen={isAuthenticated && inquiryModalOpen}
+                onCloseInquiryModal={() => setInquiryModalOpen(false)}
+                sendInquiryError={sendInquiryError}
+                sendInquiryInProgress={sendInquiryInProgress}
+                onSubmitInquiry={onSubmitInquiry}
+                currentUser={currentUser}
+                onManageDisableScrolling={onManageDisableScrolling}
+              />
+            }
+          />
+        </LayoutSingleColumn>
+      </Page>
+    );
+  }
 
   return (
     <Page

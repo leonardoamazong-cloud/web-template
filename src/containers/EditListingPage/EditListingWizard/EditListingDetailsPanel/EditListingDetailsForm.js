@@ -15,6 +15,8 @@ import {
 } from '../../../../util/fieldHelpers';
 import { maxLength, required, composeValidators } from '../../../../util/validators';
 
+import { BUSINESS_PAGE_LISTING_TYPE } from '../../../../util/businessPage';
+
 // Import shared components
 import {
   Form,
@@ -369,7 +371,11 @@ const EditListingDetailsForm = props => (
 
       const maxLength60Message = maxLength(maxLengthMessage, TITLE_MAX_LENGTH);
 
-      const hasCategories = selectableCategories && selectableCategories.length > 0;
+      // Business pages pick their categories with checkboxes (a listing field) instead of
+      // the single category select; the first checked category is saved as the main one.
+      const isBusinessPage = listingType === BUSINESS_PAGE_LISTING_TYPE;
+      const hasCategories =
+        !isBusinessPage && selectableCategories && selectableCategories.length > 0;
       const showCategories = listingType && hasCategories;
 
       const showTitle = hasCategories ? allCategoriesChosen : listingType;
@@ -426,9 +432,15 @@ const EditListingDetailsForm = props => (
               name="title"
               className={css.title}
               type="text"
-              label={intl.formatMessage({ id: 'EditListingDetailsForm.title' })}
+              label={intl.formatMessage({
+                id: isBusinessPage
+                  ? 'EditListingDetailsForm.businessNameLabel'
+                  : 'EditListingDetailsForm.title',
+              })}
               placeholder={intl.formatMessage({
-                id: 'EditListingDetailsForm.titlePlaceholder',
+                id: isBusinessPage
+                  ? 'EditListingDetailsForm.businessNamePlaceholder'
+                  : 'EditListingDetailsForm.titlePlaceholder',
               })}
               maxLength={TITLE_MAX_LENGTH}
               validate={composeValidators(required(titleRequiredMessage), maxLength60Message)}
@@ -442,9 +454,15 @@ const EditListingDetailsForm = props => (
               name="description"
               className={css.description}
               type="textarea"
-              label={intl.formatMessage({ id: 'EditListingDetailsForm.description' })}
+              label={intl.formatMessage({
+                id: isBusinessPage
+                  ? 'EditListingDetailsForm.aboutLabel'
+                  : 'EditListingDetailsForm.description',
+              })}
               placeholder={intl.formatMessage({
-                id: 'EditListingDetailsForm.descriptionPlaceholder',
+                id: isBusinessPage
+                  ? 'EditListingDetailsForm.aboutPlaceholder'
+                  : 'EditListingDetailsForm.descriptionPlaceholder',
               })}
               validate={required(
                 intl.formatMessage({

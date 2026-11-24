@@ -5,17 +5,19 @@ import classNames from 'classnames';
 import { FormattedMessage } from '../../../../util/reactIntl';
 import { LISTING_STATE_DRAFT } from '../../../../util/types';
 import { getListingImageMaxCount } from '../../../../util/configHelpers';
+import { isBusinessPageListing } from '../../../../util/businessPage';
 
 // Import shared components
 import { H3, ListingLink } from '../../../../components';
 
 // Import modules from this directory
-import EditListingPhotosForm from './EditListingPhotosForm';
+import EditListingPhotosForm, { imageUuid } from './EditListingPhotosForm';
 import css from './EditListingPhotosPanel.module.css';
 
 const getInitialValues = params => {
-  const { images = [] } = params;
-  return { images };
+  const { images = [], listing } = params;
+  const imageCaptions = listing?.attributes?.publicData?.imageCaptions || {};
+  return { images, imageCaptions };
 };
 
 /**
@@ -68,6 +70,8 @@ const EditListingPhotosPanel = props => {
   const listingType = listing?.attributes?.publicData?.listingType;
   const listingTypeConfig = listingTypes.find(conf => conf.listingType === listingType);
   const maxImages = getListingImageMaxCount(listingTypeConfig);
+  // Business pages get a short caption under each photo
+  const showCaptions = isBusinessPageListing(listing);
 
   const panelHeadingProps = isPublished
     ? {
@@ -101,9 +105,17 @@ const EditListingPhotosPanel = props => {
         initialValues={getInitialValues(props)}
         onImageUpload={onImageUpload}
         onSubmit={values => {
-          const { addImage, ...updateValues } = values;
-          onSubmit(updateValues);
+          const { addImage, imageCaptions, ...updateValues } = values;
+          // Keep only captions of images that are still attached, trimmed
+          const keptIds = (updateValues.images || []).map(imageUuid).filter(Boolean);
+          const cleanCaptions = keptIds.reduce((acc, uuid) => {
+            const caption = imageCaptions?.[uuid]?.trim();
+            return caption ? { ...acc, [uuid]: caption } : acc;
+          }, {});
+          const captionsMaybe = showCaptions ? { publicData: { imageCaptions: cleanCaptions } } : {};
+          onSubmit({ ...updateValues, ...captionsMaybe });
         }}
+        showCaptions={showCaptions}
         onRemoveImage={onRemoveImage}
         saveActionMsg={submitButtonText}
         updated={panelUpdated}

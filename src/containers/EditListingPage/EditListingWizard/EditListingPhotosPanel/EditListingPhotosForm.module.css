@@ -234,3 +234,57 @@
     width: 241px;
   }
 }
+
+/* Photo captions (business pages) */
+.captions {
+  margin-top: 32px;
+}
+
+.captionsHeading {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: var(--fontWeightSemiBold);
+}
+
+.captionsInfo {
+  margin: 4px 0 16px 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--colorGrey500);
+}
+
+.captionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.captionItem {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.captionThumb {
+  flex-shrink: 0;
+  width: 72px;
+  height: 54px;
+  border-radius: var(--borderRadiusMedium);
+  background-color: var(--colorGrey100);
+  overflow: hidden;
+}
+
+.captionThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.captionField {
+  flex-grow: 1;
+  min-width: 0;
+}

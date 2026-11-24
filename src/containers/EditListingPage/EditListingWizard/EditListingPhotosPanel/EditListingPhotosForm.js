@@ -15,13 +15,84 @@ import { isUploadImageOverLimitError } from '../../../../util/errors';
 import { listingImageIdentifierStrings } from '../../EditListingPage.shared';
 
 // Import shared components
-import { Button, Form, AspectRatioWrapper, NamedLink } from '../../../../components';
+import {
+  Button,
+  Form,
+  AspectRatioWrapper,
+  NamedLink,
+  FieldTextInput,
+  ResponsiveImage,
+} from '../../../../components';
 
 // Import modules from this directory
 import ListingImage from './ListingImage';
 import css from './EditListingPhotosForm.module.css';
 
 const ACCEPT_IMAGES = 'image/*';
+const CAPTION_MAX_LENGTH = 120;
+
+// The uuid string of an uploaded or saved listing image (temp-id uploads carry it in imageId)
+export const imageUuid = image =>
+  typeof image?.id === 'string' ? image?.imageId?.uuid : image?.id?.uuid;
+
+// A short caption field for every photo (used on business pages). The first photo is the main photo.
+const PhotoCaptions = props => {
+  const { images, intl } = props;
+  const captionable = images.filter(image => !!imageUuid(image));
+  if (captionable.length === 0) {
+    return null;
+  }
+  return (
+    <div className={css.captions}>
+      <h3 className={css.captionsHeading}>
+        <FormattedMessage id="EditListingPhotosForm.captionsHeading" />
+      </h3>
+      <p className={css.captionsInfo}>
+        <FormattedMessage id="EditListingPhotosForm.captionsInfo" />
+      </p>
+      <ul className={css.captionList}>
+        {captionable.map((image, i) => {
+          const uuid = imageUuid(image);
+          const variants = image?.attributes?.variants || {};
+          const variantNames = Object.keys(variants);
+          return (
+            <li key={uuid} className={css.captionItem}>
+              <div className={css.captionThumb}>
+                {variantNames.length > 0 ? (
+                  <ResponsiveImage
+                    rootClassName={css.captionThumbImage}
+                    alt=""
+                    image={image}
+                    variants={variantNames}
+                    sizes="96px"
+                  />
+                ) : null}
+              </div>
+              <FieldTextInput
+                className={css.captionField}
+                id={`imageCaptions.${uuid}`}
+                name={`imageCaptions.${uuid}`}
+                type="text"
+                maxLength={CAPTION_MAX_LENGTH}
+                label={
+                  i === 0
+                    ? intl.formatMessage({ id: 'EditListingPhotosForm.mainPhotoCaption' })
+                    : intl.formatMessage(
+                        { id: 'EditListingPhotosForm.photoCaption' },
+                        { number: i + 1 }
+                      )
+                }
+                placeholder={intl.formatMessage({
+                  id: 'EditListingPhotosForm.captionPlaceholder',
+                })}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};
 
 // Split out of the main bundle - only fetched once this form actually mounts.
 const Sortable = loadable.lib(() => import(/* webpackChunkName: "sortablejs" */ 'sortablejs'));
@@ -331,6 +402,8 @@ export const EditListingPhotosForm = props => {
           allFilesUploadedAndVerified,
           filesTabParams,
           filesRequired,
+          showCaptions = false,
+          dirtyFields = {},
         } = formRenderProps;
 
         formApiRef.current = form;
@@ -351,7 +424,9 @@ export const EditListingPhotosForm = props => {
         const imageIdsFromPreviousSubmit = arrayOfImgIds(submittedImages);
         const imageArrayHasSameImages = isEqual(imageIdsFromProps, imageIdsFromPreviousSubmit);
         const submittedOnce = submittedImages.length > 0;
-        const pristineSinceLastSubmit = submittedOnce && imageArrayHasSameImages;
+        const captionsChanged = Object.keys(dirtyFields).some(k => k.startsWith('imageCaptions'));
+        const pristineSinceLastSubmit =
+          submittedOnce && imageArrayHasSameImages && !captionsChanged;
 
         const submitReady = (updated && pristineSinceLastSubmit) || ready;
         const submitInProgress = updateInProgress;
@@ -494,6 +569,8 @@ export const EditListingPhotosForm = props => {
             <p className={css.tip}>
               <FormattedMessage id="EditListingPhotosForm.addImagesTip" />
             </p>
+
+            {showCaptions ? <PhotoCaptions images={images} intl={intl} /> : null}
 
             <div className={css.submitSection}>
               <PublishListingError error={publishListingError} />

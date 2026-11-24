@@ -17,6 +17,11 @@ import {
 } from '../../../../util/fieldHelpers';
 import { isBookingProcessAlias } from '../../../../transactions/transaction';
 
+import {
+  BUSINESS_PAGE_LISTING_TYPE,
+  BUSINESS_CATEGORIES_KEY,
+} from '../../../../util/businessPage';
+
 // Import shared components
 import { H3, ListingLink } from '../../../../components';
 
@@ -395,7 +400,14 @@ const EditListingDetailsPanel = props => {
               ...rest
             } = values;
 
-            const nestedCategories = pickCategoryFields(rest, categoryKey, 1, listingCategories);
+            const isBusinessPage = listingType === BUSINESS_PAGE_LISTING_TYPE;
+            // Business pages: the first checked category becomes the main category
+            const firstBusinessCategory = rest[`pub_${BUSINESS_CATEGORIES_KEY}`]?.[0];
+            const nestedCategories = isBusinessPage
+              ? firstBusinessCategory
+                ? { [`${categoryKey}1`]: firstBusinessCategory }
+                : {}
+              : pickCategoryFields(rest, categoryKey, 1, listingCategories);
             // Remove old categories by explicitly saving null for them.
             const cleanedNestedCategories = {
               ...[1, 2, 3].reduce((a, i) => ({ ...a, [`${categoryKey}${i}`]: null }), {}),

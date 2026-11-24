@@ -26,6 +26,9 @@ import {
 } from './SearchPage.shared';
 
 import CategoryCarousels from './CategoryCarousels/CategoryCarousels';
+import {
+  BUSINESS_CATEGORIES_KEY,
+} from '../../util/businessPage';
 import CategoryTabs from './CategoryTabs/CategoryTabs';
 import FilterComponent from './FilterComponent';
 import SearchMap from './SearchMap/SearchMap';
@@ -47,6 +50,11 @@ const SEARCH_WITH_MAP_DEBOUNCE = 300; // Little bit of debounce before search is
 // Primary filters have their content in dropdown-popup.
 // With this offset we move the dropdown to the left a few pixels on desktop layout.
 const FILTER_DROPDOWN_OFFSET = -14;
+
+// Business pages have no price and use the category tabs + "Categories you work in" filter,
+// so the built-in category, listing type and price filters are not shown next to the map.
+const HIDDEN_MAP_SEARCH_FILTERS = ['categoryLevel', 'listingType', 'price'];
+const isShownOnMapSearch = filterConfig => !HIDDEN_MAP_SEARCH_FILTERS.includes(filterConfig.key);
 
 export class SearchPageComponent extends Component {
   constructor(props) {
@@ -77,16 +85,24 @@ export class SearchPageComponent extends Component {
   }
 
   /**
-   * Filter results and map markers by a top-level category (pub_categoryLevel1).
-   * Passing null shows all categories. Subcategory params and pagination are reset.
+   * Filter results and map markers by a top-level category. Business pages can be in several
+   * categories (pub_businessCategories), so a business shows up under every category it ticked.
+   * Passing null shows all categories. Category params and pagination are reset.
    * @param {string|null} categoryId
    */
   handleSelectCategory(categoryId) {
     const { history, routeConfiguration, location } = this.props;
     const urlQueryParams = validUrlQueryParamsFromProps(this.props);
-    const { pub_categoryLevel1, pub_categoryLevel2, pub_categoryLevel3, ...restParams } =
-      urlQueryParams;
-    const queryParams = categoryId ? { ...restParams, pub_categoryLevel1: categoryId } : restParams;
+    const {
+      pub_categoryLevel1,
+      pub_categoryLevel2,
+      pub_categoryLevel3,
+      [`pub_${BUSINESS_CATEGORIES_KEY}`]: businessCategories,
+      ...restParams
+    } = urlQueryParams;
+    const queryParams = categoryId
+      ? { ...restParams, [`pub_${BUSINESS_CATEGORIES_KEY}`]: `has_any:${categoryId}` }
+      : restParams;
 
     const { routeName, pathParams } = getSearchPageResourceLocatorStringParams(
       routeConfiguration,
@@ -333,7 +349,15 @@ export class SearchPageComponent extends Component {
 
     const { bounds, origin } = searchParamsInURL || {};
 
-    const activeCategoryId = validQueryParams?.pub_categoryLevel1 || null;
+    // Active tab: the single category in pub_businessCategories (e.g. "has_any:3d-baski")
+    const businessCategoryParam = validQueryParams?.[`pub_${BUSINESS_CATEGORIES_KEY}`];
+    const selectedBusinessCategories = businessCategoryParam
+      ? `${businessCategoryParam}`.replace(/^has_(any|all):/, '').split(',')
+      : [];
+    const activeCategoryId =
+      selectedBusinessCategories.length === 1
+        ? selectedBusinessCategories[0]
+        : validQueryParams?.pub_categoryLevel1 || null;
     const categoryTabs = className => (
       <CategoryTabs
         className={className}
@@ -419,7 +443,7 @@ export class SearchPageComponent extends Component {
               noResultsInfo={noResultsInfo}
             >
               <SearchFiltersPrimary {...propsForSecondaryFiltersToggle}>
-                {availablePrimaryFilters.map(filterConfig => {
+                {availablePrimaryFilters.filter(isShownOnMapSearch).map(filterConfig => {
                   const key = `SearchFiltersPrimary.${filterConfig.scope || 'built-in'}.${
                     filterConfig.key
                   }`;
