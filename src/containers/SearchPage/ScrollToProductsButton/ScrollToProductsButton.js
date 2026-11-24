@@ -7,6 +7,18 @@ import css from './ScrollToProductsButton.module.css';
 
 // Hide the button once the visitor has scrolled this far down the page
 const HIDE_AFTER_SCROLL_PX = 80;
+// Height of the sticky category tab bar + a little breathing room
+const CATEGORY_BAR_HEIGHT_PX = 56;
+const EXTRA_GAP_PX = 8;
+
+// Fixed topbar height from the global CSS variable (falls back to 72px)
+const topbarHeight = () => {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(
+    '--topbarHeightDesktop'
+  );
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : 72;
+};
 
 /**
  * Floating "Browse products" button at the bottom of the search map. It tells buyers that
@@ -32,7 +44,10 @@ const ScrollToProductsButton = props => {
   const scrollToProducts = () => {
     const target = typeof document !== 'undefined' ? document.getElementById(targetId) : null;
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Stop the first product row just below the fixed topbar and the sticky category bar
+      const offset = topbarHeight() + CATEGORY_BAR_HEIGHT_PX + EXTRA_GAP_PX;
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
     }
   };
 
