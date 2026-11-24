@@ -25,7 +25,6 @@ const MAX_ITEMS_PER_ROW = 15;
  * @returns {Function} thunk resolving to an array of listings
  */
 const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) => {
-  const { variantPrefix = 'listing-card' } = config.layout.listingImage;
   const productListingTypes = (config.listing.listingTypes || [])
     .map(t => t.listingType)
     .filter(t => t !== BUSINESS_PAGE_LISTING_TYPE);
@@ -36,7 +35,7 @@ const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) 
       perPage: MAX_ITEMS_PER_ROW,
       include: ['images'],
       'fields.listing': ['title', 'publicData'],
-      'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
+      'fields.image': ['variants.scaled-small', 'variants.scaled-medium'],
       'limit.images': 1,
     })
     .then(response => denormalisedResponseEntities(response))
@@ -49,11 +48,10 @@ const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) 
  * @component
  * @param {Object} props
  * @param {{id: string, title: string, items: Array}} props.row
- * @param {string} props.variantPrefix listing image variant prefix
  * @returns {JSX.Element}
  */
 const CarouselRow = props => {
-  const { row, variantPrefix } = props;
+  const { row } = props;
   const intl = useIntl();
   const trackRef = useRef(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -102,7 +100,8 @@ const CarouselRow = props => {
         <ul className={css.track} ref={trackRef} onScroll={updateArrows}>
           {row.items.map(listing => {
             const { title, publicData } = listing.attributes;
-            const image = listing.images?.[0];
+            const firstImage = listing.images?.[0];
+            const image = firstImage?.attributes?.variants ? firstImage : null;
             const businessName = publicData?.isyeriAdi;
             return (
               <li key={listing.id.uuid} className={css.item}>
@@ -117,7 +116,7 @@ const CarouselRow = props => {
                         rootClassName={css.image}
                         alt={title}
                         image={image}
-                        variants={[variantPrefix, `${variantPrefix}-2x`]}
+                        variants={['scaled-small', 'scaled-medium']}
                         sizes="(max-width: 767px) 70vw, (max-width: 1023px) 35vw, 25vw"
                       />
                     ) : null}
@@ -162,7 +161,6 @@ const CategoryCarousels = props => {
   const [rows, setRows] = useState([]);
 
   const categories = config.categoryConfiguration?.categories || [];
-  const variantPrefix = config.layout.listingImage.variantPrefix || 'listing-card';
 
   useEffect(() => {
     let isMounted = true;

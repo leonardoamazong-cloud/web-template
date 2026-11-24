@@ -25,13 +25,12 @@ const MAX_GALLERY_PHOTOS = 20;
 const HERO_VARIANTS = ['scaled-medium', 'scaled-large', 'scaled-xlarge'];
 
 // Fetch the seller's other (service) listings. Client-side only: this section is not needed for SSR.
-const fetchSellerServices = (authorId, config) => (dispatch, getState, sdk) => {
-  const { variantPrefix = 'listing-card' } = config.layout.listingImage;
+const fetchSellerServices = authorId => (dispatch, getState, sdk) => {
   return sdk.listings
     .query({
       authorId,
       include: ['images'],
-      'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
+      'fields.image': ['variants.scaled-small', 'variants.scaled-medium'],
       'limit.images': 1,
       perPage: 24,
     })
@@ -83,12 +82,13 @@ const CategoryChips = ({ categoryIds, categories }) => (
   </ul>
 );
 
-const ServiceCard = ({ listing, categories, variantPrefix }) => {
+const ServiceCard = ({ listing, categories }) => {
   const { title, publicData } = listing.attributes;
   const categoryId = publicData?.categoryLevel1;
   const category = categories.find(c => c.id === categoryId);
   const color = getCategoryColor(categoryId, categories);
-  const image = listing.images?.[0];
+  const firstImage = listing.images?.[0];
+  const image = firstImage?.attributes?.variants ? firstImage : null;
   return (
     <NamedLink
       className={css.serviceCard}
@@ -101,7 +101,7 @@ const ServiceCard = ({ listing, categories, variantPrefix }) => {
             rootClassName={css.coverImage}
             alt={title}
             image={image}
-            variants={[variantPrefix, `${variantPrefix}-2x`]}
+            variants={['scaled-small', 'scaled-medium']}
             sizes="280px"
           />
         ) : null}
@@ -155,11 +155,10 @@ const BusinessPage = props => {
   const { title, description, publicData = {} } = listing.attributes;
   const authorId = listing.author?.id;
   const categories = config.categoryConfiguration?.categories || [];
-  const variantPrefix = config.layout.listingImage.variantPrefix || 'listing-card';
 
   useEffect(() => {
     if (authorId) {
-      dispatch(fetchSellerServices(authorId, config))
+      dispatch(fetchSellerServices(authorId))
         .then(setServices)
         .catch(() => setServices([]));
     }
@@ -317,7 +316,7 @@ const BusinessPage = props => {
           <ul className={css.services}>
             {services.map(s => (
               <li key={s.id.uuid}>
-                <ServiceCard listing={s} categories={categories} variantPrefix={variantPrefix} />
+                <ServiceCard listing={s} categories={categories} />
               </li>
             ))}
           </ul>
