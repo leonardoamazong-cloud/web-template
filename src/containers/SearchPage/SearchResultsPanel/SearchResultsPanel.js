@@ -6,9 +6,6 @@ import { ListingCard, PaginationLinks } from '../../../components';
 
 import css from './SearchResultsPanel.module.css';
 
-// Listing images in the list next to the map are a third shorter than elsewhere
-const MAP_LIST_IMAGE_HEIGHT_SCALE = 2 / 3;
-
 /**
  * SearchResultsPanel component
  *
@@ -74,11 +71,10 @@ const SearchResultsPanel = props => {
         {listings.map(l => (
           <li key={l.id.uuid} className={css.resultItem}>
             <ListingCard
-              className={css.listingCard}
+              className={isMapVariant ? css.listingCardMapVariant : css.listingCard}
               listing={l}
               renderSizes={cardRenderSizes(isMapVariant)}
               setActiveListing={setActiveListing}
-              imageHeightScale={isMapVariant ? MAP_LIST_IMAGE_HEIGHT_SCALE : 1}
             />
           </li>
         ))}
