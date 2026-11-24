@@ -25,7 +25,7 @@ const MAX_GALLERY_PHOTOS = 20;
 const HERO_VARIANTS = ['scaled-medium', 'scaled-large', 'scaled-xlarge'];
 
 // Fetch the seller's other (service) listings. Client-side only: this section is not needed for SSR.
-const fetchSellerServices = authorId => (dispatch, getState, sdk) => {
+const fetchSellerServices = (authorId, businessPageId) => (dispatch, getState, sdk) => {
   return sdk.listings
     .query({
       authorId,
@@ -35,9 +35,12 @@ const fetchSellerServices = authorId => (dispatch, getState, sdk) => {
       perPage: 24,
     })
     .then(response =>
-      denormalisedResponseEntities(response).filter(
-        l => l.attributes.publicData?.listingType !== BUSINESS_PAGE_LISTING_TYPE
-      )
+      denormalisedResponseEntities(response).filter(l => {
+        const { listingType, businessPageId: linkedPageId } = l.attributes.publicData || {};
+        // Products that name a business page belong to that page only
+        const belongsHere = !linkedPageId || linkedPageId === businessPageId;
+        return listingType !== BUSINESS_PAGE_LISTING_TYPE && belongsHere;
+      })
     );
 };
 
@@ -158,11 +161,11 @@ const BusinessPage = props => {
 
   useEffect(() => {
     if (authorId) {
-      dispatch(fetchSellerServices(authorId))
+      dispatch(fetchSellerServices(authorId, listing.id.uuid))
         .then(setServices)
         .catch(() => setServices([]));
     }
-  }, [authorId?.uuid]);
+  }, [authorId?.uuid, listing.id.uuid]);
 
   const images = listing.images || [];
   const [mainImage, ...galleryImages] = images;
