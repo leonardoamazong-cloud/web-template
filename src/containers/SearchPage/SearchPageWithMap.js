@@ -56,6 +56,15 @@ const FILTER_DROPDOWN_OFFSET = -14;
 const HIDDEN_MAP_SEARCH_FILTERS = ['categoryLevel', 'listingType', 'price'];
 const isShownOnMapSearch = filterConfig => !HIDDEN_MAP_SEARCH_FILTERS.includes(filterConfig.key);
 
+// "has_any:a,b" -> ['a', 'b']
+const parseSelectedCategories = param =>
+  param
+    ? `${param}`
+        .replace(/^has_(any|all):/, '')
+        .split(',')
+        .filter(Boolean)
+    : [];
+
 export class SearchPageComponent extends Component {
   constructor(props) {
     super(props);
@@ -85,9 +94,9 @@ export class SearchPageComponent extends Component {
   }
 
   /**
-   * Filter results and map markers by a top-level category. Business pages can be in several
-   * categories (pub_businessCategories), so a business shows up under every category it ticked.
-   * Passing null shows all categories. Category params and pagination are reset.
+   * Tick or untick a category tab. Results and map markers show business pages in any of the
+   * ticked categories (pub_businessCategories=has_any:a,b). Passing null ("All") clears the ticks.
+   * Category params and pagination are reset.
    * @param {string|null} categoryId
    */
   handleSelectCategory(categoryId) {
@@ -100,9 +109,16 @@ export class SearchPageComponent extends Component {
       [`pub_${BUSINESS_CATEGORIES_KEY}`]: businessCategories,
       ...restParams
     } = urlQueryParams;
-    const queryParams = categoryId
-      ? { ...restParams, [`pub_${BUSINESS_CATEGORIES_KEY}`]: `has_any:${categoryId}` }
-      : restParams;
+    const current = parseSelectedCategories(businessCategories);
+    const next = !categoryId
+      ? []
+      : current.includes(categoryId)
+      ? current.filter(id => id !== categoryId)
+      : [...current, categoryId];
+    const queryParams =
+      next.length > 0
+        ? { ...restParams, [`pub_${BUSINESS_CATEGORIES_KEY}`]: `has_any:${next.join(',')}` }
+        : restParams;
 
     const { routeName, pathParams } = getSearchPageResourceLocatorStringParams(
       routeConfiguration,
@@ -349,21 +365,16 @@ export class SearchPageComponent extends Component {
 
     const { bounds, origin } = searchParamsInURL || {};
 
-    // Active tab: the single category in pub_businessCategories (e.g. "has_any:3d-baski")
-    const businessCategoryParam = validQueryParams?.[`pub_${BUSINESS_CATEGORIES_KEY}`];
-    const selectedBusinessCategories = businessCategoryParam
-      ? `${businessCategoryParam}`.replace(/^has_(any|all):/, '').split(',')
-      : [];
-    const activeCategoryId =
-      selectedBusinessCategories.length === 1
-        ? selectedBusinessCategories[0]
-        : validQueryParams?.pub_categoryLevel1 || null;
+    // Ticked tabs: categories in pub_businessCategories (e.g. "has_any:3d-baski,el-isciligi")
+    const selectedBusinessCategories = parseSelectedCategories(
+      validQueryParams?.[`pub_${BUSINESS_CATEGORIES_KEY}`]
+    );
     const categoryTabs = className => (
       <CategoryTabs
         className={className}
         categories={listingCategories}
-        activeCategoryId={activeCategoryId}
-        onSelect={this.handleSelectCategory}
+        selectedIds={selectedBusinessCategories}
+        onToggle={this.handleSelectCategory}
       />
     );
 

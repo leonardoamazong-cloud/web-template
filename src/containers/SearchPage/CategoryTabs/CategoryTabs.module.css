@@ -87,3 +87,29 @@
     stroke: currentColor;
   }
 }
+
+/* Checkbox on the right side of each category tab */
+.checkbox {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  border: 1.5px solid var(--tabText, var(--colorGrey700));
+  border-radius: 4px;
+  background-color: var(--colorWhite);
+}
+
+.checkboxChecked {
+  background-color: var(--tabText, var(--colorGrey700));
+}
+
+.checkIcon {
+  fill: none;
+  stroke: var(--colorWhite);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

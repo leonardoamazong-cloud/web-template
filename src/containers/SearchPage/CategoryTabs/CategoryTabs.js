@@ -16,18 +16,19 @@ const tabColorStyle = color => ({
 
 /**
  * Horizontal tab bar that shows one tab per top-level listing category plus an "All" tab.
- * Selecting a tab filters the search results (and the map markers) by that category.
+ * Each category tab has a checkbox on its right: several categories can be ticked at once and
+ * the search results (and map markers) show businesses in any of them. "All" clears the ticks.
  *
  * @component
  * @param {Object} props
  * @param {string?} props.className add more style rules in addition to component's own css.root
  * @param {Array<{id: string, name: string}>} props.categories top-level category configuration
- * @param {string?} props.activeCategoryId currently selected category id (pub_categoryLevel1)
- * @param {Function} props.onSelect called with a category id, or null for "All"
+ * @param {Array<string>} props.selectedIds ticked category ids (empty = all)
+ * @param {Function} props.onToggle called with a category id to tick/untick it, or null for "All"
  * @returns {JSX.Element|null}
  */
 const CategoryTabs = props => {
-  const { className, categories = [], activeCategoryId, onSelect } = props;
+  const { className, categories = [], selectedIds = [], onToggle } = props;
   const intl = useIntl();
 
   if (!categories.length) {
@@ -50,7 +51,8 @@ const CategoryTabs = props => {
     >
       <ul className={css.tabList}>
         {tabs.map(tab => {
-          const isActive = (activeCategoryId || null) === tab.id;
+          const isAll = tab.id === null;
+          const isActive = isAll ? selectedIds.length === 0 : selectedIds.includes(tab.id);
           return (
             <li key={tab.id || 'all'} className={css.tabItem}>
               <button
@@ -58,13 +60,25 @@ const CategoryTabs = props => {
                 className={classNames(css.tab, { [css.tabActive]: isActive })}
                 style={tabColorStyle(tab.color)}
                 aria-pressed={isActive}
-                onClick={() => onSelect(tab.id)}
+                onClick={() => onToggle(tab.id)}
               >
                 <CategoryIcon
                   categoryId={tab.id || ALL_CATEGORIES_ICON_ID}
                   className={css.tabIcon}
                 />
                 <span>{tab.name}</span>
+                {!isAll ? (
+                  <span
+                    className={classNames(css.checkbox, { [css.checkboxChecked]: isActive })}
+                    aria-hidden="true"
+                  >
+                    {isActive ? (
+                      <svg viewBox="0 0 24 24" width="12" height="12" className={css.checkIcon}>
+                        <path d="m5 12 5 5 9-10" />
+                      </svg>
+                    ) : null}
+                  </span>
+                ) : null}
               </button>
             </li>
           );
