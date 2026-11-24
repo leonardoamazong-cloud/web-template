@@ -198,7 +198,6 @@
  * row 3: category carousels, reached by scrolling down.
  */
 .containerMapVariant {
-  --productsPeek: 150px;
   width: 100%;
   flex-grow: 1;
   display: flex;
@@ -207,8 +206,7 @@
   @media (--viewportMedium) {
     display: grid;
     grid-template-columns: 400px minmax(0, 1fr);
-    /* Map is a bit shorter than the screen so the first product row peeks in at the bottom */
-    grid-template-rows: 56px calc(100vh - var(--topbarHeightDesktop) - 56px - var(--productsPeek)) auto;
+    grid-template-rows: 56px calc(100vh - var(--topbarHeightDesktop) - 56px) auto;
     column-gap: 16px;
     padding-top: var(--topbarHeightDesktop);
   }
@@ -394,7 +392,7 @@
   /* Explicit height: the ModalInMobile wrappers around it don't stretch vertically */
   @media (--viewportMedium) {
     position: relative;
-    height: calc(100vh - var(--topbarHeightDesktop) - 56px - var(--productsPeek));
+    height: calc(100vh - var(--topbarHeightDesktop) - 56px);
   }
 }
 
