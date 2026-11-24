@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import classNames from 'classnames';
 
 // Import util modules
@@ -20,6 +21,7 @@ import { isBookingProcessAlias } from '../../../../transactions/transaction';
 import {
   BUSINESS_PAGE_LISTING_TYPE,
   BUSINESS_CATEGORIES_KEY,
+  isBusinessPageListing,
 } from '../../../../util/businessPage';
 
 // Import shared components
@@ -277,6 +279,18 @@ const getInitialValues = (
   };
 };
 
+// Find the current user's existing business page (a seller can only have one).
+// Client-side only: used to stop creating a second business page.
+const fetchOwnBusinessPage = () => (dispatch, getState, sdk) =>
+  sdk.ownListings
+    .query({ perPage: 100, 'fields.listing': ['title', 'state', 'publicData'] })
+    .then(response =>
+      (response.data.data || []).find(
+        l => isBusinessPageListing(l) && l.attributes.state !== 'closed'
+      )
+    )
+    .catch(() => null);
+
 /**
  * The EditListingDetailsPanel component.
  *
@@ -297,6 +311,12 @@ const getInitialValues = (
  * @returns {JSX.Element}
  */
 const EditListingDetailsPanel = props => {
+  const dispatch = useDispatch();
+  const [ownBusinessPage, setOwnBusinessPage] = useState(null);
+  useEffect(() => {
+    dispatch(fetchOwnBusinessPage()).then(found => setOwnBusinessPage(found || null));
+  }, []);
+
   const {
     className,
     rootClassName,
@@ -458,6 +478,9 @@ const EditListingDetailsPanel = props => {
           }
           categoryPrefix={categoryKey}
           onListingTypeChange={onListingTypeChange}
+          existingBusinessPage={
+            ownBusinessPage && ownBusinessPage.id.uuid !== listing?.id?.uuid ? ownBusinessPage : null
+          }
           listingFieldsConfig={listingFields}
           listingCurrency={listing?.attributes?.price?.currency}
           marketplaceCurrency={config.currency}

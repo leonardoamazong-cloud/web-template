@@ -15,6 +15,7 @@ import {
 } from '../../../../util/fieldHelpers';
 import { maxLength, required, composeValidators } from '../../../../util/validators';
 
+import { createSlug } from '../../../../util/urlHelpers';
 import { BUSINESS_PAGE_LISTING_TYPE } from '../../../../util/businessPage';
 
 // Import shared components
@@ -25,6 +26,7 @@ import {
   FieldTextInput,
   Heading,
   CustomExtendedDataField,
+  NamedLink,
 } from '../../../../components';
 // Import modules from this directory
 import css from './EditListingDetailsForm.module.css';
@@ -339,6 +341,7 @@ const EditListingDetailsForm = props => (
         fetchErrors,
         listingFieldsConfig = [],
         listingCurrency,
+        existingBusinessPage,
         values,
       } = formRenderProps;
 
@@ -374,6 +377,8 @@ const EditListingDetailsForm = props => (
       // Business pages pick their categories with checkboxes (a listing field) instead of
       // the single category select; the first checked category is saved as the main one.
       const isBusinessPage = listingType === BUSINESS_PAGE_LISTING_TYPE;
+      // A seller can only have one business page
+      const hasOtherBusinessPage = isBusinessPage && !!existingBusinessPage;
       const hasCategories =
         !isBusinessPage && selectableCategories && selectableCategories.length > 0;
       const showCategories = listingType && hasCategories;
@@ -398,11 +403,33 @@ const EditListingDetailsForm = props => (
         disabled ||
         submitInProgress ||
         !hasMandatoryListingTypeData ||
-        !isCompatibleCurrency;
+        !isCompatibleCurrency ||
+        hasOtherBusinessPage;
 
       return (
         <Form className={classes} onSubmit={handleSubmit}>
           <ErrorMessage fetchErrors={fetchErrors} />
+          {hasOtherBusinessPage ? (
+            <div className={css.businessPageExists}>
+              <p>
+                <FormattedMessage
+                  id="EditListingDetailsForm.businessPageExists"
+                  values={{ title: existingBusinessPage.attributes.title }}
+                />
+              </p>
+              <NamedLink
+                name="EditListingPage"
+                params={{
+                  id: existingBusinessPage.id.uuid,
+                  slug: createSlug(existingBusinessPage.attributes.title),
+                  type: 'edit',
+                  tab: 'details',
+                }}
+              >
+                <FormattedMessage id="EditListingDetailsForm.editBusinessPage" />
+              </NamedLink>
+            </div>
+          ) : null}
 
           <FieldSelectListingType
             name="listingType"
@@ -414,7 +441,7 @@ const EditListingDetailsForm = props => (
             intl={intl}
           />
 
-          {showCategories && isCompatibleCurrency && (
+          {showCategories && isCompatibleCurrency && !hasOtherBusinessPage && (
             <FieldSelectCategory
               values={values}
               prefix={categoryPrefix}
@@ -426,7 +453,7 @@ const EditListingDetailsForm = props => (
             />
           )}
 
-          {showTitle && isCompatibleCurrency && (
+          {showTitle && isCompatibleCurrency && !hasOtherBusinessPage && (
             <FieldTextInput
               id={`${formId}title`}
               name="title"
@@ -448,7 +475,7 @@ const EditListingDetailsForm = props => (
             />
           )}
 
-          {showDescription && isCompatibleCurrency && (
+          {showDescription && isCompatibleCurrency && !hasOtherBusinessPage && (
             <FieldTextInput
               id={`${formId}description`}
               name="description"
@@ -472,7 +499,7 @@ const EditListingDetailsForm = props => (
             />
           )}
 
-          {showListingFields && isCompatibleCurrency && (
+          {showListingFields && isCompatibleCurrency && !hasOtherBusinessPage && (
             <AddListingFields
               listingType={listingType}
               listingFieldsConfig={listingFieldsConfig}

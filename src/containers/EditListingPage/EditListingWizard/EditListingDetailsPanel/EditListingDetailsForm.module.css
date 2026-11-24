@@ -75,3 +75,15 @@
     margin-top: 100px;
   }
 }
+
+/* Shown when the seller already has a business page */
+.businessPageExists {
+  margin: 0 0 24px 0;
+  padding: 16px;
+  border-radius: var(--borderRadiusMedium);
+  background-color: var(--colorGrey50);
+
+  & p {
+    margin: 0 0 8px 0;
+  }
+}
