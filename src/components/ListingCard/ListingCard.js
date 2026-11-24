@@ -93,6 +93,7 @@ const ListingCardImage = props => {
  * @param {string?} props.renderSizes for img/srcset
  * @param {Function?} props.setActiveListing
  * @param {boolean?} props.showAuthorInfo
+ * @param {number?} props.imageHeightScale multiplier for the image height (e.g. 2/3 = a third shorter)
  * @returns {JSX.Element} listing card to be used in search result panel etc.
  */
 export const ListingCard = props => {
@@ -109,6 +110,7 @@ export const ListingCard = props => {
     setActiveListing,
     showAuthorInfo = true,
     lazyLoadImage = true,
+    imageHeightScale = 1,
   } = props;
 
   const translations = getListingCardTranslations(listing, config, intl);
@@ -136,9 +138,10 @@ export const ListingCard = props => {
 
   const {
     aspectWidth = 1,
-    aspectHeight = 1,
+    aspectHeight: configAspectHeight = 1,
     variantPrefix = 'listing-card',
   } = config.layout.listingImage;
+  const aspectHeight = configAspectHeight * imageHeightScale;
 
   // Sets the listing as active in the search map when hovered (if the search map is enabled)
   const setActivePropsMaybe = setActiveListing
