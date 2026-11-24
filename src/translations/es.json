@@ -1019,6 +1019,7 @@
   "SavedCardDetails.replaceCardTitle": "Utiliza otra tarjeta de pago",
   "SavedCardDetails.savedPaymentMethodPlaceholderDesktop": "•••• •••• •••• {last4Digits}",
   "SavedCardDetails.savedPaymentMethodPlaceholderMobile": "…{last4Digits}",
+  "ScrollToProductsButton.label": "Browse products",
   "SearchFiltersMobile.cancel": "CANCELAR",
   "SearchFiltersMobile.filtersButtonLabel": "Filtros",
   "SearchFiltersMobile.foundResults": "{count, number} {count, plural, one {resultado} other {resultados}}",

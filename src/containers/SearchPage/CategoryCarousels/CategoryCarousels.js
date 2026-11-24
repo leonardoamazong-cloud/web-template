@@ -152,10 +152,11 @@ const CarouselRow = props => {
  * @component
  * @param {Object} props
  * @param {string?} props.className add more style rules in addition to component's own css.root
+ * @param {string?} props.id id of the root element (scroll target)
  * @returns {JSX.Element|null}
  */
 const CategoryCarousels = props => {
-  const { className } = props;
+  const { className, id } = props;
   const dispatch = useDispatch();
   const config = useConfiguration();
   const [rows, setRows] = useState([]);
@@ -187,7 +188,7 @@ const CategoryCarousels = props => {
   }
 
   return (
-    <div className={classNames(css.root, className)}>
+    <div id={id} className={classNames(css.root, className)}>
       {rows.map(row => (
         <CarouselRow key={row.id} row={row} />
       ))}

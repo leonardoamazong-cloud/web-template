@@ -1,0 +1,65 @@
+@import '../../../styles/customMediaQueries.css';
+
+.root {
+  display: none;
+
+  @media (--viewportMedium) {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    z-index: 2;
+    transform: translateX(-50%);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    min-height: 44px;
+
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: var(--fontWeightSemiBold);
+    color: var(--colorWhite);
+    background-color: var(--marketplaceColor);
+    border: 0;
+    border-radius: 24px;
+    box-shadow: var(--boxShadowPopup);
+    cursor: pointer;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+
+    &:hover,
+    &:focus-visible {
+      background-color: var(--marketplaceColorDark);
+    }
+  }
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.arrow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    animation: none;
+  }
+}

@@ -1019,6 +1019,7 @@
   "ReviewModal.description": "Please share what went well and what could be improved.",
   "ReviewModal.later": "Later",
   "ReviewModal.title": "Leave a review for {revieweeName}",
+  "ScrollToProductsButton.label": "Browse products",
   "SearchFiltersMobile.cancel": "CANCEL",
   "SearchFiltersMobile.filtersButtonLabel": "Filters",
   "SearchFiltersMobile.foundResults": "{count, number} {count, plural, one {result} other {results}}",

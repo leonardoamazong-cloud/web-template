@@ -26,6 +26,7 @@ import {
 } from './SearchPage.shared';
 
 import CategoryCarousels from './CategoryCarousels/CategoryCarousels';
+import ScrollToProductsButton from './ScrollToProductsButton/ScrollToProductsButton';
 import {
   BUSINESS_CATEGORIES_KEY,
 } from '../../util/businessPage';
@@ -55,6 +56,9 @@ const FILTER_DROPDOWN_OFFSET = -14;
 // so the built-in category, listing type and price filters are not shown next to the map.
 const HIDDEN_MAP_SEARCH_FILTERS = ['categoryLevel', 'listingType', 'price', BUSINESS_CATEGORIES_KEY];
 const isShownOnMapSearch = filterConfig => !HIDDEN_MAP_SEARCH_FILTERS.includes(filterConfig.key);
+
+// Anchor of the product carousels below the map (target of the "Browse products" button)
+const PRODUCTS_SECTION_ID = 'products';
 
 // "has_any:a,b" -> ['a', 'b']
 const parseSelectedCategories = param =>
@@ -560,11 +564,12 @@ export class SearchPageComponent extends Component {
                   messages={intl.messages}
                 />
               ) : null}
+              <ScrollToProductsButton targetId={PRODUCTS_SECTION_ID} />
             </div>
           </ModalInMobile>
 
-          {/* Below the map: the operator's showcase images, one scrolling row per section */}
-          <CategoryCarousels className={css.categoryCarousels} />
+          {/* Below the map: published products, one scrolling row per category */}
+          <CategoryCarousels id={PRODUCTS_SECTION_ID} className={css.categoryCarousels} />
         </div>
       </Page>
     );
