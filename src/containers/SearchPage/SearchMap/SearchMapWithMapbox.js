@@ -378,6 +378,14 @@ class SearchMapWithMapbox extends Component {
 
       this.map.on('moveend', this.onMoveend);
 
+      // Hide country and continent names (e.g. "United States", "Mexico") from the map
+      this.map.on('style.load', () => {
+        const layers = this.map.getStyle()?.layers || [];
+        layers
+          .filter(l => /country-label|continent-label/.test(l.id))
+          .forEach(l => this.map.setLayoutProperty(l.id, 'visibility', 'none'));
+      });
+
       // Introduce rerendering after map is ready (to include labels),
       // but keep the map out of state life cycle.
       this.setState({ isMapReady: true });

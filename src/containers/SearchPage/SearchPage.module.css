@@ -205,13 +205,15 @@
 
   @media (--viewportMedium) {
     display: grid;
-    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-columns: 400px minmax(0, 1fr);
     grid-template-rows: 56px calc(100vh - var(--topbarHeightDesktop) - 56px) auto;
+    column-gap: 16px;
     padding-top: var(--topbarHeightDesktop);
   }
 
   @media (--viewportLarge) {
-    grid-template-columns: 400px minmax(0, 1fr);
+    grid-template-columns: 440px minmax(0, 1fr);
+    column-gap: 24px;
   }
 }
 

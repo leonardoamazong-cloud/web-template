@@ -3,6 +3,8 @@ import classNames from 'classnames';
 
 import { useIntl } from '../../../util/reactIntl';
 
+import { ALL_CATEGORIES_ICON_ID, CategoryIcon } from '../SearchMapPriceLabel/categoryIcons';
+
 import { ALL_CATEGORY_COLOR, CATEGORY_COLORS } from './categoryColors';
 import css from './CategoryTabs.module.css';
 
@@ -58,7 +60,11 @@ const CategoryTabs = props => {
                 aria-pressed={isActive}
                 onClick={() => onSelect(tab.id)}
               >
-                {tab.name}
+                <CategoryIcon
+                  categoryId={tab.id || ALL_CATEGORIES_ICON_ID}
+                  className={css.tabIcon}
+                />
+                <span>{tab.name}</span>
               </button>
             </li>
           );

@@ -49,6 +49,17 @@ const ICON_PATHS = {
   ),
 };
 
+// "All" tab: four squares
+export const ALL_CATEGORIES_ICON_ID = 'all';
+ICON_PATHS[ALL_CATEGORIES_ICON_ID] = (
+  <>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+  </>
+);
+
 // Fallback: a small shop
 const DEFAULT_ICON = (
   <>

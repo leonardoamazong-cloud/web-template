@@ -32,9 +32,36 @@ const MainPanelHeader = props => {
     resultsCount,
     searchInProgress = false,
     noResultsInfo,
+    compact = false,
   } = props;
 
   const classes = classNames(rootClassName || css.root, className);
+
+  const resultSummary = (
+    <h1 className={css.searchResultSummary}>
+      <span className={css.resultsFound}>
+        {searchInProgress ? (
+          <FormattedMessage id="MainPanelHeader.loadingResults" />
+        ) : (
+          <FormattedMessage id="MainPanelHeader.foundResults" values={{ count: resultsCount }} />
+        )}
+      </span>
+    </h1>
+  );
+
+  // Compact layout (map search): filters and sort dropdown on one row, result count below it
+  if (compact) {
+    return (
+      <div className={classes}>
+        <div className={css.filterRow}>
+          <div className={css.filterRowFilters}>{children}</div>
+          {isSortByActive ? <div className={css.filterRowSort}>{sortByComponent}</div> : null}
+        </div>
+        {resultSummary}
+        {noResultsInfo ? noResultsInfo : null}
+      </div>
+    );
+  }
 
   return (
     <div className={classes}>

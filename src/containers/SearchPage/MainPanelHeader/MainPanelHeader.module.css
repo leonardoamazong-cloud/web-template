@@ -1,3 +1,5 @@
+@import '../../../styles/customMediaQueries.css';
+
 .root {
   display: flex;
   flex-direction: column;
@@ -49,4 +51,44 @@
   composes: marketplaceSmallFontStyles from global;
   font-weight: var(--fontWeightRegular);
   padding: 8px 8px 8px 0;
+}
+
+/* Compact layout: Category, Delivery time, Price and sort (Newest) on a single row */
+.filterRow {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.filterRowFilters {
+  flex: 0 1 auto;
+  min-width: 0;
+
+  /* Keep the filter buttons on one line */
+  & > div,
+  & > div > div {
+    display: flex;
+    flex-wrap: nowrap;
+    background-color: transparent;
+  }
+
+  & > div > div > * {
+    margin-bottom: 0 !important;
+    white-space: nowrap;
+  }
+}
+
+.filterRowSort {
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.filterRowFilters button,
+.filterRowSort button {
+  @media (--viewportMedium) {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }

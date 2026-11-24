@@ -409,6 +409,7 @@ export class SearchPageComponent extends Component {
             </SearchFiltersMobile>
             <MainPanelHeader
               className={css.mainPanelMapVariant}
+              compact
               sortByComponent={sortBy('desktop')}
               isSortByActive={sortConfig.active}
               listingsAreLoaded={listingsAreLoaded}
