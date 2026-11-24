@@ -8,7 +8,11 @@ import { FormattedMessage, useIntl } from '../../util/reactIntl';
 import { denormalisedResponseEntities } from '../../util/data';
 import { formatMoney } from '../../util/currency';
 import { createSlug, parse, stringify } from '../../util/urlHelpers';
-import { BUSINESS_PAGE_LISTING_TYPE, getBusinessCategoryIds } from '../../util/businessPage';
+import {
+  BUSINESS_PAGE_LISTING_TYPE,
+  getBusinessCategoryIds,
+  resolveSellerPages,
+} from '../../util/businessPage';
 import { isScrollingDisabled } from '../../ducks/ui.duck';
 
 // Shared components
@@ -38,12 +42,12 @@ const IMAGE_VARIANTS = ['scaled-small', 'scaled-medium'];
 
 /**
  * Thunk: keyword search for sellers' business pages and for products (all other listing types),
- * plus the business page of every product's seller so product cards can link to it.
+ * plus each product's seller business page so product cards can link to it.
  * Client-side only.
  *
  * @param {string} keywords search words
  * @param {Object} config marketplace configuration
- * @returns {Function} thunk resolving to { sellers, products, sellerPageByAuthor }
+ * @returns {Function} thunk resolving to { sellers, products, sellerPageByProduct }
  */
 const searchSellersAndProducts = (keywords, config) => (dispatch, getState, sdk) => {
   const productTypes = (config.listing.listingTypes || [])
@@ -59,29 +63,13 @@ const searchSellersAndProducts = (keywords, config) => (dispatch, getState, sdk)
   const productsPromise =
     productTypes.length > 0 ? query({ pub_listingType: productTypes }) : Promise.resolve([]);
 
-  return Promise.all([sellersPromise, productsPromise]).then(([sellers, products]) => {
-    // Find the business page of each product's seller (one small query per seller)
-    const authorIds = [...new Set(products.map(p => p.author?.id?.uuid).filter(Boolean))];
-    const knownPages = sellers.reduce(
-      (acc, s) => (s.author?.id ? { ...acc, [s.author.id.uuid]: s } : acc),
-      {}
-    );
-    const missing = authorIds.filter(id => !knownPages[id]);
-    return Promise.all(
-      missing.map(authorId =>
-        sdk.listings
-          .query({ authorId, pub_listingType: BUSINESS_PAGE_LISTING_TYPE, perPage: 1 })
-          .then(res => [authorId, denormalisedResponseEntities(res)[0] || null])
-          .catch(() => [authorId, null])
-      )
-    ).then(found => {
-      const sellerPageByAuthor = found.reduce(
-        (acc, [authorId, page]) => (page ? { ...acc, [authorId]: page } : acc),
-        knownPages
-      );
-      return { sellers, products, sellerPageByAuthor };
-    });
-  });
+  return Promise.all([sellersPromise, productsPromise]).then(([sellers, products]) =>
+    resolveSellerPages(sdk, products, denormalisedResponseEntities).then(sellerPageByProduct => ({
+      sellers,
+      products,
+      sellerPageByProduct,
+    }))
+  );
 };
 
 const imageOf = listing => {
@@ -218,7 +206,7 @@ const SearchResultsPage = () => {
   const { inProgress, error, results } = state;
   const sellers = results?.sellers || [];
   const products = results?.products || [];
-  const sellerPageByAuthor = results?.sellerPageByAuthor || {};
+  const sellerPageByProduct = results?.sellerPageByProduct || {};
   const hasResults = sellers.length > 0 || products.length > 0;
 
   const title = intl.formatMessage(
@@ -298,7 +286,7 @@ const SearchResultsPage = () => {
                   <li key={p.id.uuid}>
                     <ProductCard
                       listing={p}
-                      sellerPage={sellerPageByAuthor[p.author?.id?.uuid]}
+                      sellerPage={sellerPageByProduct[p.id.uuid]}
                       intl={intl}
                       config={config}
                     />

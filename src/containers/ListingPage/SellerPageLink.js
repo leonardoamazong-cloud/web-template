@@ -4,17 +4,16 @@ import { useDispatch } from 'react-redux';
 import { FormattedMessage } from '../../util/reactIntl';
 import { denormalisedResponseEntities } from '../../util/data';
 import { createSlug } from '../../util/urlHelpers';
-import { BUSINESS_PAGE_LISTING_TYPE } from '../../util/businessPage';
+import { resolveSellerPages } from '../../util/businessPage';
 
 import { NamedLink } from '../../components';
 
 import css from './ListingPage.module.css';
 
 // Find the seller's business page. Client-side only.
-const fetchSellerBusinessPage = authorId => (dispatch, getState, sdk) =>
-  sdk.listings
-    .query({ authorId, pub_listingType: BUSINESS_PAGE_LISTING_TYPE, perPage: 1 })
-    .then(response => denormalisedResponseEntities(response)[0] || null)
+const fetchSellerBusinessPage = listing => (dispatch, getState, sdk) =>
+  resolveSellerPages(sdk, [listing], denormalisedResponseEntities)
+    .then(pages => pages[listing.id.uuid] || null)
     .catch(() => null);
 
 /**
@@ -33,9 +32,9 @@ const SellerPageLink = props => {
 
   useEffect(() => {
     if (authorId) {
-      dispatch(fetchSellerBusinessPage(authorId)).then(setSellerPage);
+      dispatch(fetchSellerBusinessPage(listing)).then(setSellerPage);
     }
-  }, [authorId?.uuid]);
+  }, [listing?.id?.uuid, authorId?.uuid]);
 
   if (!sellerPage) {
     return null;

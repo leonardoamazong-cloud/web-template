@@ -72,3 +72,40 @@ export const fetchBusinessPagesByAuthor = (sdk, authorIds, denormalise) =>
   ).then(pairs =>
     pairs.reduce((acc, [authorId, page]) => (page ? { ...acc, [authorId]: page } : acc), {})
   );
+
+/**
+ * Find the seller business page of each product listing. A product can name its business page
+ * explicitly in publicData.businessPageId; otherwise the seller's (author's) business page is used.
+ *
+ * @param {Object} sdk Sharetribe SDK instance
+ * @param {Array<Object>} listings product listings (with author)
+ * @param {Function} denormalise response -> entities (denormalisedResponseEntities)
+ * @returns {Promise<Object>} map: product listing uuid -> business page listing
+ */
+export const resolveSellerPages = (sdk, listings, denormalise) => {
+  const explicitIds = [
+    ...new Set(listings.map(l => l.attributes?.publicData?.businessPageId).filter(Boolean)),
+  ];
+  const explicitPromise = Promise.all(
+    explicitIds.map(id =>
+      sdk.listings
+        .show({ id, 'fields.listing': ['title', 'publicData'] })
+        .then(res => [id, denormalise(res)[0] || null])
+        .catch(() => [id, null])
+    )
+  );
+  const authorIds = listings
+    .filter(l => !l.attributes?.publicData?.businessPageId)
+    .map(l => l.author?.id?.uuid);
+  return Promise.all([
+    explicitPromise,
+    fetchBusinessPagesByAuthor(sdk, authorIds, denormalise),
+  ]).then(([explicitPairs, byAuthor]) => {
+    const byId = explicitPairs.reduce((acc, [id, page]) => (page ? { ...acc, [id]: page } : acc), {});
+    return listings.reduce((acc, l) => {
+      const explicitId = l.attributes?.publicData?.businessPageId;
+      const page = explicitId ? byId[explicitId] : byAuthor[l.author?.id?.uuid];
+      return page && isBusinessPageListing(page) ? { ...acc, [l.id.uuid]: page } : acc;
+    }, {});
+  });
+};

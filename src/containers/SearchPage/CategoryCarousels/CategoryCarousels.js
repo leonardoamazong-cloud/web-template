@@ -8,7 +8,7 @@ import { denormalisedResponseEntities } from '../../../util/data';
 import { createSlug } from '../../../util/urlHelpers';
 import {
   BUSINESS_PAGE_LISTING_TYPE,
-  fetchBusinessPagesByAuthor,
+  resolveSellerPages,
 } from '../../../util/businessPage';
 
 import { NamedLink, ResponsiveImage } from '../../../components';
@@ -43,14 +43,10 @@ const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) 
     })
     .then(response => denormalisedResponseEntities(response))
     .then(listings =>
-      fetchBusinessPagesByAuthor(
-        sdk,
-        listings.map(l => l.author?.id?.uuid),
-        denormalisedResponseEntities
-      ).then(pagesByAuthor =>
+      resolveSellerPages(sdk, listings, denormalisedResponseEntities).then(pagesByListing =>
         listings.map(listing => ({
           listing,
-          sellerPage: pagesByAuthor[listing.author?.id?.uuid] || null,
+          sellerPage: pagesByListing[listing.id.uuid] || null,
         }))
       )
     )
