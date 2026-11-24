@@ -34,6 +34,7 @@ const ProfilePage = loadable(() => import(/* webpackChunkName: "ProfilePage" */ 
 const ProfileSettingsPage = loadable(() => import(/* webpackChunkName: "ProfileSettingsPage" */ '../containers/ProfileSettingsPage/ProfileSettingsPage'));
 const RequestQuotePage = loadable(() => import(/* webpackChunkName: "RequestQuotePage" */ '../containers/RequestQuotePage/RequestQuotePage'));
 const SearchPageWithMap = loadable(() => import(/* webpackChunkName: "SearchPageWithMap" */ /* webpackPrefetch: true */  '../containers/SearchPage/SearchPageWithMap'));
+const SearchResultsPage = loadable(() => import(/* webpackChunkName: "SearchResultsPage" */ '../containers/SearchResultsPage/SearchResultsPage'));
 const SearchPageWithGrid = loadable(() => import(/* webpackChunkName: "SearchPageWithGrid" */ /* webpackPrefetch: true */  '../containers/SearchPage/SearchPageWithGrid'));
 const StripePayoutPage = loadable(() => import(/* webpackChunkName: "StripePayoutPage" */ '../containers/StripePayoutPage/StripePayoutPage'));
 const TermsOfServicePage = loadable(() => import(/* webpackChunkName: "TermsOfServicePage" */ '../containers/TermsOfServicePage/TermsOfServicePage'));
@@ -99,6 +100,13 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       prioritizeLibraryLoading: {
         map: isSearchPageWithMap,
       },
+    },
+    {
+      // Keyword search results: sellers and products (topbar search goes here)
+      path: '/results',
+      name: 'SearchResultsPage',
+      ...authForPrivateMarketplace,
+      component: SearchResultsPage,
     },
     {
       path: '/s/:listingType',

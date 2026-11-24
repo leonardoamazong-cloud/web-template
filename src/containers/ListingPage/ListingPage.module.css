@@ -845,3 +845,9 @@
   width: 100%;
   height: 100%;
 }
+
+/* Link from a product page to the seller's business page */
+.sellerPageLink {
+  composes: buttonSecondaryInline from global;
+  margin: 8px 0 16px 0;
+}

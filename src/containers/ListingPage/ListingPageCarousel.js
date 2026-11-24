@@ -57,6 +57,7 @@ import CustomListingFields from './CustomListingFields';
 import ListingPageAccessWrapper from './ListingPageAccessWrapper';
 
 import BusinessPage from './BusinessPage/BusinessPage';
+import SellerPageLink from './SellerPageLink';
 import { isBusinessPageListing } from '../../util/businessPage';
 
 import css from './ListingPage.module.css';
@@ -347,6 +348,7 @@ export const ListingPageComponent = props => {
                 </H3>
               )}
             </div>
+            <SellerPageLink listing={currentListing} />
             {showDescription && <SectionText text={description} showAsIngress />}
 
             <CustomListingFields

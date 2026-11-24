@@ -176,6 +176,20 @@ const TopbarComponent = props => {
         bounds,
       };
     };
+    // Keyword searches open the search results page (sellers + products)
+    if (isMainSearchTypeKeywords(config)) {
+      const keywords = values?.keywords?.trim();
+      history.push(
+        createResourceLocatorString(
+          'SearchResultsPage',
+          routeConfiguration,
+          {},
+          keywords ? { keywords } : {}
+        )
+      );
+      return;
+    }
+
     const searchParams = {
       ...currentSearchParams,
       ...topbarSearchParams(),
