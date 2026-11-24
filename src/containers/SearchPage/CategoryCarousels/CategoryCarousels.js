@@ -1,103 +1,59 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
 import classNames from 'classnames';
 
+import { useConfiguration } from '../../../context/configurationContext';
 import { useIntl } from '../../../util/reactIntl';
-import { denormalizeAssetData } from '../../../util/data';
+import { denormalisedResponseEntities } from '../../../util/data';
+import { createSlug } from '../../../util/urlHelpers';
+import { BUSINESS_PAGE_LISTING_TYPE } from '../../../util/businessPage';
 
-import { ExternalLink, ResponsiveImage } from '../../../components';
+import { NamedLink, ResponsiveImage } from '../../../components';
 
 import css from './CategoryCarousels.module.css';
-
-// Console > Content > Pages > page with this ID holds the showcase images.
-// Each section of that page becomes one carousel row (section title = row title,
-// each block's image + title + optional button link = one card).
-export const SHOWCASE_ASSET_PATH = 'content/pages/showcase.json';
 
 // Max cards per row (about 4.5 are visible at once on desktop)
 const MAX_ITEMS_PER_ROW = 15;
 
 /**
- * Thunk: fetch the operator's showcase page from Sharetribe hosted assets.
+ * Thunk: fetch the published product/service listings of one top-level category.
+ * Business pages are excluded – they are shown in the list next to the map.
  * Rendered client-side only (below the fold), so it is not part of the page's loadData.
  *
- * @returns {Function} thunk resolving to the denormalised page data, or null if missing
+ * @param {string} categoryId top-level category id (categoryLevel1)
+ * @param {Object} config marketplace configuration
+ * @returns {Function} thunk resolving to an array of listings
  */
-const fetchShowcase = () => (dispatch, getState, sdk) =>
-  sdk
-    .assetByAlias({ path: SHOWCASE_ASSET_PATH, alias: 'latest' })
-    .then(response => denormalizeAssetData(response.data))
-    .catch(() => null);
-
-// Rows without uploaded images show temporary demo photos (from picsum.photos, a fixed
-// photo per row and position) so the layout can be reviewed. Uploading images in Console
-// replaces them automatically.
-const DEMO_IMAGE_COUNT = 10;
-const demoItems = rowId =>
-  [...Array(DEMO_IMAGE_COUNT).keys()].map(i => ({
-    id: `demo-${rowId}-${i}`,
-    src: `https://picsum.photos/seed/${encodeURIComponent(rowId)}-${i + 1}/800/600`,
-  }));
-
-/**
- * Turn the Console page sections into carousel rows. Rows without images show placeholders.
- *
- * @param {Object} pageData denormalised page asset
- * @returns {Array<{id: string, title: string, items: Array}>}
- */
-const toRows = pageData => {
-  const sections = pageData?.sections || [];
-  return sections
-    .map((section, i) => {
-      const items = (section.blocks || [])
-        .filter(block => block?.media?.image?.attributes?.variants)
-        .slice(0, MAX_ITEMS_PER_ROW)
-        .map((block, j) => ({
-          id: block.blockId || `${i}-${j}`,
-          image: block.media.image,
-          alt: block.media.alt || block.title?.content || '',
-          title: block.title?.content || '',
-          href: block.callToAction?.href || block.media?.link?.href || null,
-        }));
-      return {
-        id: section.sectionId || `section-${i}`,
-        title: section.title?.content || '',
-        items,
-      };
+const fetchCategoryProducts = (categoryId, config) => (dispatch, getState, sdk) => {
+  const { variantPrefix = 'listing-card' } = config.layout.listingImage;
+  const productListingTypes = (config.listing.listingTypes || [])
+    .map(t => t.listingType)
+    .filter(t => t !== BUSINESS_PAGE_LISTING_TYPE);
+  return sdk.listings
+    .query({
+      pub_categoryLevel1: categoryId,
+      ...(productListingTypes.length > 0 ? { pub_listingType: productListingTypes } : {}),
+      perPage: MAX_ITEMS_PER_ROW,
+      include: ['images'],
+      'fields.listing': ['title', 'publicData'],
+      'fields.image': [`variants.${variantPrefix}`, `variants.${variantPrefix}-2x`],
+      'limit.images': 1,
     })
-    .filter(row => row.title || row.items.length > 0);
+    .then(response => denormalisedResponseEntities(response))
+    .catch(() => []);
 };
 
 /**
- * Link wrapper: internal paths use the app router, other URLs open in a new tab.
- */
-const CardLink = props => {
-  const { href, className, children } = props;
-  if (!href) {
-    return <div className={className}>{children}</div>;
-  }
-  return href.startsWith('/') ? (
-    <Link to={href} className={className}>
-      {children}
-    </Link>
-  ) : (
-    <ExternalLink href={href} className={className}>
-      {children}
-    </ExternalLink>
-  );
-};
-
-/**
- * One horizontally scrolling row of showcase images with arrows on both sides.
+ * One horizontally scrolling row of product cards with arrows on both sides.
  *
  * @component
  * @param {Object} props
  * @param {{id: string, title: string, items: Array}} props.row
+ * @param {string} props.variantPrefix listing image variant prefix
  * @returns {JSX.Element}
  */
 const CarouselRow = props => {
-  const { row } = props;
+  const { row, variantPrefix } = props;
   const intl = useIntl();
   const trackRef = useRef(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -126,7 +82,7 @@ const CarouselRow = props => {
     }
   };
 
-  const headingId = `showcase-row-${row.id}`;
+  const headingId = `product-row-${row.id}`;
 
   return (
     <section className={css.row} aria-labelledby={headingId}>
@@ -144,32 +100,36 @@ const CarouselRow = props => {
           ‹
         </button>
         <ul className={css.track} ref={trackRef} onScroll={updateArrows}>
-          {row.items.length === 0
-            ? demoItems(row.id).map(demo => (
-                <li key={demo.id} className={css.item}>
+          {row.items.map(listing => {
+            const { title, publicData } = listing.attributes;
+            const image = listing.images?.[0];
+            const businessName = publicData?.isyeriAdi;
+            return (
+              <li key={listing.id.uuid} className={css.item}>
+                <NamedLink
+                  className={css.card}
+                  name="ListingPage"
+                  params={{ id: listing.id.uuid, slug: createSlug(title) }}
+                >
                   <div className={css.imageWrapper}>
-                    <img className={css.image} src={demo.src} alt="" loading="lazy" />
-                    <span className={css.demoBadge}>Demo</span>
+                    {image ? (
+                      <ResponsiveImage
+                        rootClassName={css.image}
+                        alt={title}
+                        image={image}
+                        variants={[variantPrefix, `${variantPrefix}-2x`]}
+                        sizes="(max-width: 767px) 70vw, (max-width: 1023px) 35vw, 25vw"
+                      />
+                    ) : null}
                   </div>
-                </li>
-              ))
-            : null}
-          {row.items.map(item => (
-            <li key={item.id} className={css.item}>
-              <CardLink href={item.href} className={css.card}>
-                <div className={css.imageWrapper}>
-                  <ResponsiveImage
-                    rootClassName={css.image}
-                    alt={item.alt}
-                    image={item.image}
-                    variants={Object.keys(item.image.attributes.variants)}
-                    sizes="(max-width: 767px) 70vw, (max-width: 1023px) 35vw, 25vw"
-                  />
-                </div>
-                {item.title ? <p className={css.cardTitle}>{item.title}</p> : null}
-              </CardLink>
-            </li>
-          ))}
+                  <p className={css.cardTitle}>{title}</p>
+                  {businessName && businessName !== title ? (
+                    <p className={css.cardSubtitle}>{businessName}</p>
+                  ) : null}
+                </NamedLink>
+              </li>
+            );
+          })}
         </ul>
         <button
           type="button"
@@ -186,8 +146,9 @@ const CarouselRow = props => {
 };
 
 /**
- * Showcase rows below the map: the marketplace operator's own images, one carousel per
- * section of the "showcase" page in Sharetribe Console. Renders nothing until that page exists.
+ * Product rows below the map: one carousel per top-level category with the products/services
+ * sellers have published in that category. Clicking a card opens the product page.
+ * Categories without products are not shown.
  *
  * @component
  * @param {Object} props
@@ -197,19 +158,31 @@ const CarouselRow = props => {
 const CategoryCarousels = props => {
   const { className } = props;
   const dispatch = useDispatch();
+  const config = useConfiguration();
   const [rows, setRows] = useState([]);
+
+  const categories = config.categoryConfiguration?.categories || [];
+  const variantPrefix = config.layout.listingImage.variantPrefix || 'listing-card';
 
   useEffect(() => {
     let isMounted = true;
-    dispatch(fetchShowcase()).then(pageData => {
+    Promise.all(
+      categories.map(category =>
+        dispatch(fetchCategoryProducts(category.id, config)).then(items => ({
+          id: category.id,
+          title: category.name,
+          items,
+        }))
+      )
+    ).then(allRows => {
       if (isMounted) {
-        setRows(toRows(pageData));
+        setRows(allRows.filter(row => row.items.length > 0));
       }
     });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [categories.map(c => c.id).join(',')]);
 
   if (!rows.length) {
     return null;
@@ -218,7 +191,7 @@ const CategoryCarousels = props => {
   return (
     <div className={classNames(css.root, className)}>
       {rows.map(row => (
-        <CarouselRow key={row.id} row={row} />
+        <CarouselRow key={row.id} row={row} variantPrefix={variantPrefix} />
       ))}
     </div>
   );
